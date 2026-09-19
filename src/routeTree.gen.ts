@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MoneyRouteImport } from './routes/money'
+import { Route as PunchRouteImport } from './routes/punch'
 import { Route as CrewsIndexRouteImport } from './routes/crews.index'
 import { Route as CrewsIdRouteImport } from './routes/crews.$id'
 import { Route as HousesIndexRouteImport } from './routes/houses.index'
@@ -18,6 +20,16 @@ import { Route as HousesIdRouteImport } from './routes/houses.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoneyRoute = MoneyRouteImport.update({
+  id: '/money',
+  path: '/money',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PunchRoute = PunchRouteImport.update({
+  id: '/punch',
+  path: '/punch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrewsIndexRoute = CrewsIndexRouteImport.update({
@@ -43,6 +55,8 @@ const HousesIdRoute = HousesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/money': typeof MoneyRoute
+  '/punch': typeof PunchRoute
   '/crews/$id': typeof CrewsIdRoute
   '/houses/$id': typeof HousesIdRoute
   '/crews/': typeof CrewsIndexRoute
@@ -50,6 +64,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/money': typeof MoneyRoute
+  '/punch': typeof PunchRoute
   '/crews/$id': typeof CrewsIdRoute
   '/houses/$id': typeof HousesIdRoute
   '/crews': typeof CrewsIndexRoute
@@ -58,6 +74,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/money': typeof MoneyRoute
+  '/punch': typeof PunchRoute
   '/crews/$id': typeof CrewsIdRoute
   '/houses/$id': typeof HousesIdRoute
   '/crews/': typeof CrewsIndexRoute
@@ -65,14 +83,38 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/crews/$id' | '/houses/$id' | '/crews/' | '/houses/'
+  fullPaths:
+    | '/'
+    | '/money'
+    | '/punch'
+    | '/crews/$id'
+    | '/houses/$id'
+    | '/crews/'
+    | '/houses/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/crews/$id' | '/houses/$id' | '/crews' | '/houses'
-  id: '__root__' | '/' | '/crews/$id' | '/houses/$id' | '/crews/' | '/houses/'
+  to:
+    | '/'
+    | '/money'
+    | '/punch'
+    | '/crews/$id'
+    | '/houses/$id'
+    | '/crews'
+    | '/houses'
+  id:
+    | '__root__'
+    | '/'
+    | '/money'
+    | '/punch'
+    | '/crews/$id'
+    | '/houses/$id'
+    | '/crews/'
+    | '/houses/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MoneyRoute: typeof MoneyRoute
+  PunchRoute: typeof PunchRoute
   CrewsIdRoute: typeof CrewsIdRoute
   HousesIdRoute: typeof HousesIdRoute
   CrewsIndexRoute: typeof CrewsIndexRoute
@@ -86,6 +128,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/money': {
+      id: '/money'
+      path: '/money'
+      fullPath: '/money'
+      preLoaderRoute: typeof MoneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/punch': {
+      id: '/punch'
+      path: '/punch'
+      fullPath: '/punch'
+      preLoaderRoute: typeof PunchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crews/': {
@@ -121,6 +177,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MoneyRoute: MoneyRoute,
+  PunchRoute: PunchRoute,
   CrewsIdRoute: CrewsIdRoute,
   HousesIdRoute: HousesIdRoute,
   CrewsIndexRoute: CrewsIndexRoute,

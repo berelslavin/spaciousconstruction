@@ -25,7 +25,7 @@ function PunchPage() {
 
   const [what, setWhat] = useState("");
   const [newHouse, setNewHouse] = useState("5");
-  const [newCrew, setNewCrew] = useState(contractors[0].id);
+  const [newCrew, setNewCrew] = useState(contractors[0]?.id ?? "");
   const [due, setDue] = useState("");
 
   const list = punch.filter(
