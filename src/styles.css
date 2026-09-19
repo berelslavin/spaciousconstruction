@@ -159,6 +159,35 @@
     border-color: var(--color-border);
   }
 
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@utility card-pad {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 0.875rem;
+}
+
+@utility tap {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@layer base {
+
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
