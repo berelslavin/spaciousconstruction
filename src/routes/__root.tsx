@@ -77,21 +77,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Spacious Bay Construction" },
+      { name: "description", content: "Internal control center for the Spacious Bay build in Port Isabel, Texas." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
   shellComponent: RootShell,
@@ -114,13 +113,50 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+const TABS = [
+  { to: "/", label: "Today" },
+  { to: "/houses", label: "Houses" },
+  { to: "/crews", label: "Crews" },
+  { to: "/punch", label: "Punch" },
+  { to: "/money", label: "Money" },
+] as const;
+
+function BottomNav() {
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto flex max-w-lg">
+        {TABS.map((t) => (
+          <Link
+            key={t.to}
+            to={t.to}
+            activeOptions={{ exact: t.to === "/" }}
+            activeProps={{ className: "text-primary font-bold" }}
+            inactiveProps={{ className: "text-muted-foreground" }}
+            className="flex-1 py-3 text-center text-[13px] font-display uppercase tracking-wide"
+          >
+            {t.label}
+          </Link>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <StoreProvider>
+        <div className="min-h-screen bg-background pb-20">
+          <div className="mx-auto max-w-lg">
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </div>
+        </div>
+        <BottomNav />
+      </StoreProvider>
     </QueryClientProvider>
   );
 }
+
