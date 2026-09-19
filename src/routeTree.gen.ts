@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MoneyRouteImport } from './routes/money'
+import { Route as PunchRouteImport } from './routes/punch'
+import { Route as CrewsIndexRouteImport } from './routes/crews.index'
+import { Route as CrewsIdRouteImport } from './routes/crews.$id'
+import { Route as HousesIndexRouteImport } from './routes/houses.index'
+import { Route as HousesIdRouteImport } from './routes/houses.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MoneyRoute = MoneyRouteImport.update({
+  id: '/money',
+  path: '/money',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PunchRoute = PunchRouteImport.update({
+  id: '/punch',
+  path: '/punch',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrewsIndexRoute = CrewsIndexRouteImport.update({
+  id: '/crews/',
+  path: '/crews/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrewsIdRoute = CrewsIdRouteImport.update({
+  id: '/crews/$id',
+  path: '/crews/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HousesIndexRoute = HousesIndexRouteImport.update({
+  id: '/houses/',
+  path: '/houses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HousesIdRoute = HousesIdRouteImport.update({
+  id: '/houses/$id',
+  path: '/houses/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/money': typeof MoneyRoute
+  '/punch': typeof PunchRoute
+  '/crews/$id': typeof CrewsIdRoute
+  '/houses/$id': typeof HousesIdRoute
+  '/crews/': typeof CrewsIndexRoute
+  '/houses/': typeof HousesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/money': typeof MoneyRoute
+  '/punch': typeof PunchRoute
+  '/crews/$id': typeof CrewsIdRoute
+  '/houses/$id': typeof HousesIdRoute
+  '/crews': typeof CrewsIndexRoute
+  '/houses': typeof HousesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/money': typeof MoneyRoute
+  '/punch': typeof PunchRoute
+  '/crews/$id': typeof CrewsIdRoute
+  '/houses/$id': typeof HousesIdRoute
+  '/crews/': typeof CrewsIndexRoute
+  '/houses/': typeof HousesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/money'
+    | '/punch'
+    | '/crews/$id'
+    | '/houses/$id'
+    | '/crews/'
+    | '/houses/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/money'
+    | '/punch'
+    | '/crews/$id'
+    | '/houses/$id'
+    | '/crews'
+    | '/houses'
+  id:
+    | '__root__'
+    | '/'
+    | '/money'
+    | '/punch'
+    | '/crews/$id'
+    | '/houses/$id'
+    | '/crews/'
+    | '/houses/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MoneyRoute: typeof MoneyRoute
+  PunchRoute: typeof PunchRoute
+  CrewsIdRoute: typeof CrewsIdRoute
+  HousesIdRoute: typeof HousesIdRoute
+  CrewsIndexRoute: typeof CrewsIndexRoute
+  HousesIndexRoute: typeof HousesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +130,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/money': {
+      id: '/money'
+      path: '/money'
+      fullPath: '/money'
+      preLoaderRoute: typeof MoneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/punch': {
+      id: '/punch'
+      path: '/punch'
+      fullPath: '/punch'
+      preLoaderRoute: typeof PunchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crews/': {
+      id: '/crews/'
+      path: '/crews'
+      fullPath: '/crews/'
+      preLoaderRoute: typeof CrewsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crews/$id': {
+      id: '/crews/$id'
+      path: '/crews/$id'
+      fullPath: '/crews/$id'
+      preLoaderRoute: typeof CrewsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/houses/': {
+      id: '/houses/'
+      path: '/houses'
+      fullPath: '/houses/'
+      preLoaderRoute: typeof HousesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/houses/$id': {
+      id: '/houses/$id'
+      path: '/houses/$id'
+      fullPath: '/houses/$id'
+      preLoaderRoute: typeof HousesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MoneyRoute: MoneyRoute,
+  PunchRoute: PunchRoute,
+  CrewsIdRoute: CrewsIdRoute,
+  HousesIdRoute: HousesIdRoute,
+  CrewsIndexRoute: CrewsIndexRoute,
+  HousesIndexRoute: HousesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
