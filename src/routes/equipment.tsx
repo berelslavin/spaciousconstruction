@@ -410,7 +410,7 @@ function Checkout({
       p_operator_name: operator,
       p_task_location: task.trim(),
       p_safe_confirmed: safe,
-      p_fuel_level: needFuel ? fuel : null,
+      p_fuel_level: needFuel ? fuel : undefined,
     });
     setBusy(false);
     if (e) setError(rpcError(e));
@@ -558,8 +558,8 @@ function ReturnEod({
         p_machine_code: machine.code,
         p_operator_name: chosenOperator,
         p_photo_url: url,
-        p_fuel_level: needFuel ? fuel : null,
-        p_note: note.trim() || null,
+        p_fuel_level: needFuel ? fuel : undefined,
+        p_note: note.trim() || undefined,
       });
       if (e) setError(rpcError(e));
       else

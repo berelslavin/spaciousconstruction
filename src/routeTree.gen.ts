@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EquipmentRouteImport } from './routes/equipment'
+import { Route as EquipmentAdminRouteImport } from './routes/equipment-admin'
 import { Route as MoneyRouteImport } from './routes/money'
 import { Route as PunchRouteImport } from './routes/punch'
 import { Route as CrewsIndexRouteImport } from './routes/crews.index'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const EquipmentRoute = EquipmentRouteImport.update({
   id: '/equipment',
   path: '/equipment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipmentAdminRoute = EquipmentAdminRouteImport.update({
+  id: '/equipment-admin',
+  path: '/equipment-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MoneyRoute = MoneyRouteImport.update({
@@ -62,6 +68,7 @@ const HousesIdRoute = HousesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/equipment': typeof EquipmentRoute
+  '/equipment-admin': typeof EquipmentAdminRoute
   '/money': typeof MoneyRoute
   '/punch': typeof PunchRoute
   '/crews/$id': typeof CrewsIdRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/equipment': typeof EquipmentRoute
+  '/equipment-admin': typeof EquipmentAdminRoute
   '/money': typeof MoneyRoute
   '/punch': typeof PunchRoute
   '/crews/$id': typeof CrewsIdRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/equipment': typeof EquipmentRoute
+  '/equipment-admin': typeof EquipmentAdminRoute
   '/money': typeof MoneyRoute
   '/punch': typeof PunchRoute
   '/crews/$id': typeof CrewsIdRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/equipment'
+    | '/equipment-admin'
     | '/money'
     | '/punch'
     | '/crews/$id'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/equipment'
+    | '/equipment-admin'
     | '/money'
     | '/punch'
     | '/crews/$id'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/equipment'
+    | '/equipment-admin'
     | '/money'
     | '/punch'
     | '/crews/$id'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EquipmentRoute: typeof EquipmentRoute
+  EquipmentAdminRoute: typeof EquipmentAdminRoute
   MoneyRoute: typeof MoneyRoute
   PunchRoute: typeof PunchRoute
   CrewsIdRoute: typeof CrewsIdRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/equipment'
       fullPath: '/equipment'
       preLoaderRoute: typeof EquipmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipment-admin': {
+      id: '/equipment-admin'
+      path: '/equipment-admin'
+      fullPath: '/equipment-admin'
+      preLoaderRoute: typeof EquipmentAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/money': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EquipmentRoute: EquipmentRoute,
+  EquipmentAdminRoute: EquipmentAdminRoute,
   MoneyRoute: MoneyRoute,
   PunchRoute: PunchRoute,
   CrewsIdRoute: CrewsIdRoute,

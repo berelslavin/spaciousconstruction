@@ -260,7 +260,7 @@ function AuthorizeTransfer({
       p_machine_code: code,
       p_new_operator_name: newOperator,
       p_authorized_by: by.trim(),
-      p_note: note.trim() || null,
+      p_note: note.trim() || undefined,
       p_pin: pin,
     });
     setBusy(false);
