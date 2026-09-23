@@ -426,6 +426,30 @@ export type Database = {
       }
     }
     Views: {
+      app_settings_public: {
+        Row: {
+          eod_cutoff: string | null
+          id: number | null
+          sheets_connected: boolean | null
+          sheets_url: string | null
+          timezone: string | null
+        }
+        Insert: {
+          eod_cutoff?: string | null
+          id?: number | null
+          sheets_connected?: boolean | null
+          sheets_url?: string | null
+          timezone?: string | null
+        }
+        Update: {
+          eod_cutoff?: string | null
+          id?: number | null
+          sheets_connected?: boolean | null
+          sheets_url?: string | null
+          timezone?: string | null
+        }
+        Relationships: []
+      }
       machine_dashboard: {
         Row: {
           code: string | null
@@ -506,6 +530,7 @@ export type Database = {
         }
         Returns: Json
       }
+      verify_admin_pin: { Args: { p_pin: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
