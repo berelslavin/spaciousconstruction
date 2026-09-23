@@ -484,14 +484,17 @@ function IssueFlow({ assets, custody, worker, setWorker, onDone }: FlowProps) {
       <Label>What is wrong</Label>
       <input value={note} onChange={(e) => setNote(e.target.value)} className="field w-full" placeholder="One line, e.g. will not start" />
       <Label>Photo (optional)</Label>
-      <input
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        className="w-full text-sm text-field-dim file:mr-3 file:min-h-12 file:border-0 file:bg-field-line file:px-4 file:text-field-ink"
-      />
-      {file ? <p className="mt-1 text-sm text-field-dim">{file.name}</p> : null}
+      <label className="flex min-h-14 cursor-pointer items-center justify-center border-2 border-dashed border-field-line bg-field-panel px-4 text-center text-sm font-bold uppercase text-field-ink">
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="sr-only"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+        {file ? file.name : "Add photo from camera"}
+      </label>
+
       <ErrorNote text={err} />
       <Primary onClick={submit} busy={busy} disabled={!severity}>
         Send issue
