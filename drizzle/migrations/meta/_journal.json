@@ -8,6 +8,13 @@
       "when": 1790128965657,
       "tag": "0000_equipment_custody",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790129398919,
+      "tag": "0001_equipment_grants_and_pin",
+      "breakpoints": true
     }
   ]
 }
