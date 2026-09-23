@@ -28,7 +28,7 @@ export type Machine = {
   current_task_location: string | null;
   fuel_level: string | null;
   fuel_logged_date: string | null;
-  open_issue: boolean | null;
+  open_issue: string | null;
   needs_fuel: boolean | null;
 };
 

@@ -111,8 +111,8 @@ function AdminBoard({ pin }: { pin: string }) {
     [machines, filter],
   );
 
-  const checkedOut = machines.filter((m) => m.status === "Checked Out");
-  const dnoMachines = machines.filter((m) => m.status === "Do Not Operate");
+  const checkedOut = machines.filter((m) => !!m.responsible_operator);
+  const dnoMachines = machines.filter((m) => m.status === "Do Not Operate" || !!m.open_issue);
 
   return (
     <div className="min-h-screen bg-white px-4 py-6 text-black">
@@ -152,6 +152,7 @@ function AdminBoard({ pin }: { pin: string }) {
               {m.responsible_operator ? `With ${m.responsible_operator}` : "Unassigned"}
               {m.current_task_location ? ` · ${m.current_task_location}` : ""}
             </p>
+            {m.open_issue && <p className="mt-1 text-base font-bold text-red-700">Issue: {m.open_issue}</p>}
             <p className="text-base">
               Fuel: {m.fuel_level ?? "—"}
               {m.needs_fuel ? " · NEEDS FUEL" : ""} · Return: {m.return_location ?? "—"}
