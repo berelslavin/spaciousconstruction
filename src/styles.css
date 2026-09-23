@@ -30,6 +30,16 @@
   --color-done: var(--done);
   --color-done-foreground: var(--done-foreground);
   --color-surface: var(--surface);
+  --color-field: var(--field);
+  --color-field-ink: var(--field-ink);
+  --color-field-dim: var(--field-dim);
+  --color-field-panel: var(--field-panel);
+  --color-field-line: var(--field-line);
+  --color-field-accent: var(--field-accent);
+  --color-field-accent-ink: var(--field-accent-ink);
+  --color-field-go: var(--field-go);
+  --color-field-caution: var(--field-caution);
+  --color-field-stop: var(--field-stop);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -100,6 +110,17 @@
   --bad-foreground: oklch(0.99 0.005 25);
   --done: oklch(0.72 0.02 80);
   --done-foreground: oklch(0.99 0.005 80);
+  /* /equipment field app — high contrast, gloved-hands legible */
+  --field: oklch(0.16 0.01 250);
+  --field-ink: oklch(0.99 0 0);
+  --field-dim: oklch(0.72 0.015 250);
+  --field-panel: oklch(0.23 0.012 250);
+  --field-line: oklch(0.38 0.012 250);
+  --field-accent: oklch(0.85 0.17 95);
+  --field-accent-ink: oklch(0.16 0.01 250);
+  --field-go: oklch(0.72 0.16 150);
+  --field-caution: oklch(0.78 0.15 75);
+  --field-stop: oklch(0.63 0.2 25);
   --border: oklch(0.88 0.015 82);
   --input: oklch(0.88 0.015 82);
   --ring: oklch(0.42 0.09 215);
@@ -192,4 +213,30 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+/* /equipment field app — very large tap targets, high contrast */
+@utility big {
+  min-height: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1.375rem;
+  line-height: 1.15;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+@utility field {
+  min-height: 56px;
+  padding: 0.5rem 0.75rem;
+  font-size: 1.125rem;
+  color: var(--field-ink);
+  background: var(--field-panel);
+  border: 1px solid var(--field-line);
+  border-radius: 0.5rem;
 }
