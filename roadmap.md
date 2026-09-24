@@ -1,12 +1,10 @@
 # Roadmap
 
-- [x] /equipment — standalone worker-only field route for machine custody
-  - [x] Cloud database: equipment_assets + equipment_events (GRANTs, RLS, seed list of 10 machines)
-  - [x] Private storage bucket equipment-photos with upload/read policies
-  - [x] Four very large flows: check out, transfer, return / end-of-day, report issue (severity + photo)
-  - [x] No nav into the management app from /equipment; bottom tabs hidden on that route
-  - [x] Verified in browser at phone size: all four flows recorded rows, photo stored, no console errors
+- [x] /equipment worker route on the real machine register (EX-101 … GN-110)
+- [x] Machine control v2: EOD that isn't forgotten overnight, same-day one-use transfer approvals, issue reports mark machines Do Not Operate automatically, parked-at-location confirmation, photo compression, offline state, add to Home Screen
+- [x] /equipment-admin control center: Live, Machines, Activity, Operators, Transfers, Issues — all behind a PIN checked by the server; no fallback PIN
+- [x] Sensitive tables locked; admin data only through PIN-checked calls
 
 Open:
-- [ ] Replace the starter machine list with the real register (needs the user's equipment list)
-- [ ] Management-side view of custody history and issue photos (not requested yet)
+- [ ] Google Sheets sync (the card shows "not connected yet")
+- [ ] Optional: change the admin PIN away from 2468
