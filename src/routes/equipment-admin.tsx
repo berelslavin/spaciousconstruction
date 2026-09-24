@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import {
   S_DNO,
+  S_EOD,
   fmtDate,
   fmtTime,
   loadMachines,
@@ -239,20 +240,20 @@ function Live({ machines, pin }: { machines: Machine[]; pin: string }) {
   const counts = {
     all: machines.length,
     out: machines.filter((m) => !!m.responsible_operator).length,
-    eod: machines.filter((m) => m.eod_missing && !m.do_not_operate).length,
-    dno: machines.filter((m) => m.status === S_DNO).length,
-    fuel: machines.filter((m) => m.needs_fuel).length,
+    eod: machines.filter((m) => !!m.eod_missing).length,
+    dno: machines.filter((m) => !!m.do_not_operate).length,
+    fuel: machines.filter((m) => m.fuel_level === "Needs Fuel").length,
     due: machines.filter((m) => !m.fuel_logged_today).length,
   };
   const test = (m: Machine) =>
     filter === "out"
       ? !!m.responsible_operator
       : filter === "eod"
-        ? !!m.eod_missing && !m.do_not_operate
+        ? !!m.eod_missing
         : filter === "dno"
-          ? m.status === S_DNO
+          ? !!m.do_not_operate
           : filter === "fuel"
-            ? !!m.needs_fuel
+            ? m.fuel_level === "Needs Fuel"
             : filter === "due"
               ? !m.fuel_logged_today
               : true;
@@ -337,7 +338,17 @@ function Live({ machines, pin }: { machines: Machine[]; pin: string }) {
 
 /* ---------------- Machines ---------------- */
 
-type AdminMachine = { id: string; code: string; name: string; return_location: string; active: boolean; do_not_operate: boolean; responsible_operator: string | null };
+type AdminMachine = {
+  id: string;
+  code: string;
+  name: string;
+  return_location: string;
+  active: boolean;
+  do_not_operate: boolean;
+  responsible_operator: string | null;
+  eod_missing: boolean;
+  open_issue_count: number;
+};
 
 function Machines({ pin, onSaved }: { pin: string; onSaved: () => void }) {
   const [list, setList] = useState<AdminMachine[]>([]);
@@ -384,6 +395,7 @@ function Machines({ pin, onSaved }: { pin: string; onSaved: () => void }) {
                   {m.active ? "Active" : "Inactive — hidden from workers"}
                   {m.responsible_operator ? ` · with ${m.responsible_operator}` : ""}
                   {m.do_not_operate ? " · DNO" : ""}
+                   {m.eod_missing ? " · Missing EOD" : ""}
                 </p>
               </div>
               <button type="button" className={ghostBtn} onClick={() => setEditing(m.id)}>
@@ -404,6 +416,13 @@ function MachineForm({ pin, machine, onDone, onCancel }: { pin: string; machine?
   const [active, setActive] = useState(machine?.active ?? true);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const deactivateReason = machine?.responsible_operator
+    ? `In custody with ${machine.responsible_operator}. Return it first.`
+    : machine?.do_not_operate || (machine?.open_issue_count ?? 0) > 0
+      ? "Unresolved safety issue. Clear all issues first."
+      : machine?.eod_missing
+        ? "Missing EOD. Complete Return / end-of-day first."
+        : "";
 
   const save = async () => {
     setBusy(true);
@@ -441,9 +460,10 @@ function MachineForm({ pin, machine, onDone, onCancel }: { pin: string; machine?
           Inactive
         </Chip>
       </div>
+      {machine?.active && !active && deactivateReason && <Msg err={`Cannot deactivate: ${deactivateReason}`} />}
       <Msg err={err} />
       <div className="flex gap-2">
-        <button type="button" className={`${primaryBtn} flex-1`} disabled={busy || !code.trim() || !name.trim() || !loc.trim()} onClick={save}>
+        <button type="button" className={`${primaryBtn} flex-1`} disabled={busy || !code.trim() || !name.trim() || !loc.trim() || (!!machine?.active && !active && !!deactivateReason)} onClick={save}>
           {busy ? "Saving…" : "Save"}
         </button>
         <button type="button" className={ghostBtn} onClick={onCancel}>
@@ -655,7 +675,7 @@ type Auth = {
 };
 
 function Transfers({ pin, machines, operators, onSaved }: { pin: string; machines: Machine[]; operators: string[]; onSaved: () => void }) {
-  const held = machines.filter((m) => !!m.responsible_operator && m.status !== S_DNO);
+  const held = machines.filter((m) => !!m.responsible_operator);
   const [code, setCode] = useState("");
   const [to, setTo] = useState("");
   const [by, setBy] = useState("");
@@ -666,6 +686,9 @@ function Transfers({ pin, machines, operators, onSaved }: { pin: string; machine
   const [auths, setAuths] = useState<Auth[]>([]);
 
   const machine = held.find((m) => m.code === code) ?? null;
+  const dno = !!machine?.do_not_operate;
+  const eodBlocked = !dno && !!machine?.eod_missing;
+  const eligible = !!machine && !dno && !eodBlocked;
 
   const loadAuths = useCallback(async () => {
     const { data } = await supabase.rpc("admin_authorizations", { p_pin: pin });
@@ -714,18 +737,20 @@ function Transfers({ pin, machines, operators, onSaved }: { pin: string; machine
             <option value="">{held.length ? "Choose…" : "No machines in custody"}</option>
             {held.map((m) => (
               <option key={m.code} value={m.code}>
-                {m.code} — {m.responsible_operator}
+                {m.code} — {m.responsible_operator}{m.do_not_operate ? " — DNO" : m.eod_missing ? " — Missing EOD" : ""}
               </option>
             ))}
           </select>
         </Field>
         {machine && (
-          <p className="text-base">
-            Current operator: <b>{machine.responsible_operator}</b>
-          </p>
+          <>
+            <p className="text-base">Current operator: <b>{machine.responsible_operator}</b></p>
+            {dno && <Msg err="Do Not Operate — clear all open issues before authorizing a transfer." />}
+            {eodBlocked && <p className="rounded-xl bg-field-eod p-3 text-base font-bold text-field-accent-ink">End-of-day is missing. Return / end-of-day is required before authorizing a transfer.</p>}
+          </>
         )}
-        <Field label="New responsible operator">
-          <select className={inputCls} value={to} onChange={(e) => setTo(e.target.value)} disabled={!machine}>
+        {eligible && <Field label="New responsible operator">
+          <select className={inputCls} value={to} onChange={(e) => setTo(e.target.value)}>
             <option value="">Choose…</option>
             {operators
               .filter((o) => o !== machine?.responsible_operator)
@@ -735,18 +760,18 @@ function Transfers({ pin, machines, operators, onSaved }: { pin: string; machine
                 </option>
               ))}
           </select>
-        </Field>
-        <Field label="Authorized by">
+        </Field>}
+        {eligible && <Field label="Authorized by">
           <input className={inputCls} value={by} onChange={(e) => setBy(e.target.value)} placeholder="Your name" />
-        </Field>
-        <Field label="Note (optional)">
+        </Field>}
+        {eligible && <Field label="Note (optional)">
           <input className={inputCls} value={note} onChange={(e) => setNote(e.target.value)} />
-        </Field>
-        <p className="text-sm font-bold text-field-accent">Valid today only (America/Chicago) · one use</p>
+        </Field>}
+        {eligible && <p className="text-sm font-bold text-field-accent">Valid today only (America/Chicago) · one use</p>}
         <Msg err={err} ok={ok} />
-        <button type="button" className={`${primaryBtn} w-full`} disabled={busy || !machine || !to || !by.trim()} onClick={submit}>
+        {eligible && <button type="button" className={`${primaryBtn} w-full`} disabled={busy || !to || !by.trim()} onClick={submit}>
           {busy ? "Saving…" : "Approve transfer"}
-        </button>
+        </button>}
       </Card>
       <p className="pt-2 text-lg font-black">Recent authorizations</p>
       {auths.length === 0 && <p className="text-field-dim">None yet.</p>}
