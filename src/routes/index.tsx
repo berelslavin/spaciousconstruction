@@ -57,51 +57,53 @@ function TodayPage() {
       </div>
 
       <Section title="Schedule">
-        {day === "today" && byContractor.length > 0 ? (
-          <div className="mb-3 grid grid-cols-3 gap-2 text-center">
-            {[
-              { n: expected, l: "Expected", c: "bg-muted text-foreground" },
-              { n: checkedCount, l: "Came", c: "bg-ok text-ok-foreground" },
-              { n: expected - checkedCount, l: "Missing", c: expected - checkedCount > 0 ? "bg-warn text-warn-foreground" : "bg-muted text-muted-foreground" },
-            ].map((s) => (
-              <div key={s.l} className={`rounded-xl py-2 ${s.c}`}>
-                <p className="font-display text-2xl leading-none">{s.n}</p>
-                <p className="mt-1 text-xs font-bold uppercase">{s.l}</p>
-              </div>
-            ))}
-          </div>
-        ) : null}
         {byContractor.length === 0 ? (
           <Empty>Nothing scheduled.</Empty>
+        ) : day === "today" ? (
+          <div>
+            <p className="mb-1 text-sm font-bold text-muted-foreground">
+              {expected} expected · {checkedCount} came · {expected - checkedCount} missing
+            </p>
+            <div className="divide-y divide-border">
+              {byContractor.map(([cid, list]) => {
+                const c = contractorById(cid)!;
+                const at = checkins.map[cid];
+                const work = list.map((t) => `#${t.house} ${t.task}`).join(" · ");
+                return (
+                  <div key={cid} className="flex items-center gap-2 py-1.5">
+                    <Link to="/crews/$id" params={{ id: cid }} className="min-w-0 flex-1 py-1">
+                      <p className="truncate text-base font-bold leading-tight">{c.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{work}</p>
+                    </Link>
+                    {at ? (
+                      <span className="flex min-h-11 shrink-0 items-center rounded-lg bg-ok px-3 text-sm font-bold text-ok-foreground">
+                        ✓ {chicagoTime(at)}
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={!!checkins.pending[cid]}
+                        onClick={() => checkins.checkIn(cid)}
+                        className="min-h-11 shrink-0 rounded-lg bg-primary px-4 text-sm font-bold uppercase text-primary-foreground disabled:opacity-60"
+                      >
+                        {checkins.pending[cid] ? "…" : "Mark came"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         ) : (
           <div className="space-y-3">
             {byContractor.map(([cid, list]) => {
               const c = contractorById(cid)!;
-              const at = checkins.map[cid];
               return (
                 <div key={cid} className="card-pad">
-                  <div className="flex items-center justify-between gap-2">
-                    <Link to="/crews/$id" params={{ id: cid }} className="block min-w-0">
-                      <p className="text-base font-bold">{c.name}</p>
-                      <p className="text-sm text-muted-foreground">{c.trade}</p>
-                    </Link>
-                    {day === "today" ? (
-                      at ? (
-                        <span className="shrink-0 rounded-lg bg-ok px-3 py-2 text-sm font-bold text-ok-foreground">
-                          ✓ Came {chicagoTime(at)}
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={!!checkins.pending[cid]}
-                          onClick={() => checkins.checkIn(cid)}
-                          className="tap shrink-0 rounded-lg bg-primary px-4 text-sm font-bold uppercase text-primary-foreground disabled:opacity-60"
-                        >
-                          {checkins.pending[cid] ? "…" : "Mark came"}
-                        </button>
-                      )
-                    ) : null}
-                  </div>
+                  <Link to="/crews/$id" params={{ id: cid }} className="block min-w-0">
+                    <p className="text-base font-bold">{c.name}</p>
+                    <p className="text-sm text-muted-foreground">{c.trade}</p>
+                  </Link>
                   <div className="mt-2 space-y-3">
                     {list.map((t) => (
                       <div key={t.id} className="rounded-lg bg-surface p-2.5">
