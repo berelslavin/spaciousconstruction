@@ -544,8 +544,10 @@ export type Database = {
           active: boolean
           code: string
           do_not_operate: boolean
+          eod_missing: boolean
           id: string
           name: string
+          open_issue_count: number
           responsible_operator: string
           return_location: string
         }[]
