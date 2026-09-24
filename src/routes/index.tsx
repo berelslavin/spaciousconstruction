@@ -61,7 +61,7 @@ function TodayPage() {
           <div className="mb-3 grid grid-cols-3 gap-2 text-center">
             {[
               { n: expected, l: "Expected", c: "bg-muted text-foreground" },
-              { n: checkedCount, l: "Checked in", c: "bg-ok text-ok-foreground" },
+              { n: checkedCount, l: "Came", c: "bg-ok text-ok-foreground" },
               { n: expected - checkedCount, l: "Missing", c: expected - checkedCount > 0 ? "bg-warn text-warn-foreground" : "bg-muted text-muted-foreground" },
             ].map((s) => (
               <div key={s.l} className={`rounded-xl py-2 ${s.c}`}>
@@ -88,7 +88,7 @@ function TodayPage() {
                     {day === "today" ? (
                       at ? (
                         <span className="shrink-0 rounded-lg bg-ok px-3 py-2 text-sm font-bold text-ok-foreground">
-                          ✓ Checked in {chicagoTime(at)}
+                          ✓ Came {chicagoTime(at)}
                         </span>
                       ) : (
                         <button
@@ -97,7 +97,7 @@ function TodayPage() {
                           onClick={() => checkins.checkIn(cid)}
                           className="tap shrink-0 rounded-lg bg-primary px-4 text-sm font-bold uppercase text-primary-foreground disabled:opacity-60"
                         >
-                          {checkins.pending[cid] ? "…" : "Check in"}
+                          {checkins.pending[cid] ? "…" : "Mark came"}
                         </button>
                       )
                     ) : null}
