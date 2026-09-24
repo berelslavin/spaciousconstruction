@@ -136,7 +136,7 @@ function FieldPage() {
       )}
 
       {flow === "checkout" && (
-        <Checkout machines={machines} operators={operators} online={online} onDone={done} onBack={done} goReturn={() => openReturn()} />
+        <Checkout machines={machines} operators={operators} online={online} onDone={done} onBack={done} goReturn={openReturn} />
       )}
       {flow === "transfer" && <Transfer machines={machines} online={online} onDone={done} onBack={done} goReturn={openReturn} />}
       {flow === "return" && (
@@ -434,7 +434,7 @@ function Checkout({
   online: boolean;
   onDone: () => void;
   onBack: () => void;
-  goReturn: () => void;
+  goReturn: (code: string) => void;
 }) {
   const [code, setCode] = useState("");
   const [operator, setOperator] = useState("");
@@ -446,11 +446,15 @@ function Checkout({
   const [saved, setSaved] = useState<string[] | null>(null);
 
   const machine = useMemo(() => machines.find((m) => m.code === code) ?? null, [machines, code]);
-  const eodMissing = machine?.status === S_EOD && !machine.responsible_operator;
+  const dno = machine?.status === S_DNO;
+  const eodMissing = !!machine?.eod_missing;
+  const held = !!machine?.responsible_operator;
   const blocked =
-    machine?.status === S_DNO
+    dno
       ? "DO NOT OPERATE — this machine has an open issue. It cannot be checked out until an admin clears it."
-      : machine?.responsible_operator
+      : eodMissing
+        ? ""
+        : held
         ? `Already checked out to ${machine.responsible_operator}. A handoff needs an admin-approved transfer.`
         : "";
   const needFuel = machine ? !machine.fuel_logged_today : false;
@@ -482,15 +486,15 @@ function Checkout({
     <Shell title="Check out machine" onBack={onBack}>
       <MachinePicker machines={machines} value={code} onChange={setCode} empty="No active machines." />
       {machine && blocked && <Alert message={blocked} />}
-      {machine && !blocked && eodMissing && (
+       {machine && !dno && eodMissing && (
         <>
-          <Alert tone="eod" message={`End-of-day for ${machine.code} is missing (last: ${fmtDate(machine.last_eod_date)}). Complete Return / end-of-day first.`} />
-          <button type="button" onClick={goReturn} className="min-h-[72px] w-full rounded-2xl bg-field-eod text-2xl font-black text-field-accent-ink">
+           <Alert tone="eod" message={`End-of-day for ${machine.code} is missing (last: ${fmtDate(machine.last_eod_date)}). Complete Return / end-of-day first.${held ? ` ${machine.responsible_operator} must return it.` : ""}`} />
+           <button type="button" onClick={() => goReturn(machine.code)} className="min-h-[72px] w-full rounded-2xl bg-field-eod text-2xl font-black text-field-accent-ink">
             Go to Return / end-of-day
           </button>
         </>
       )}
-      {machine && !blocked && !eodMissing && (
+       {machine && !blocked && !eodMissing && (
         <>
           <OperatorPicker operators={operators} value={operator} onChange={setOperator} label="Responsible operator" />
           <TextInput label="Task / location" value={task} onChange={setTask} placeholder="e.g. Trenching, House 9" />
@@ -658,6 +662,7 @@ function ReturnEod({
 
   const machine = machines.find((m) => m.code === code) ?? null;
   const locked = machine?.responsible_operator ?? null;
+  const redundant = !!machine && !locked && !machine.eod_missing;
   const who = locked ?? operator;
   const needFuel = machine ? !machine.fuel_logged_today : false;
   const missing = [
@@ -711,15 +716,22 @@ function ReturnEod({
           {locked ? (
             <Info label="Responsible operator (must return it)" value={locked} />
           ) : (
-            <OperatorPicker operators={operators} value={operator} onChange={setOperator} label="Who is confirming EOD" />
+            !redundant && <OperatorPicker operators={operators} value={operator} onChange={setOperator} label="Who is confirming EOD" />
           )}
-          <PhotoInput file={photo} onPick={setPhoto} label="Clear photo of machine at return location" />
-          {needFuel && <FuelPicker value={fuel} onChange={setFuel} />}
-          <TextInput label="Note (optional)" value={note} onChange={setNote} placeholder="Anything to know" />
-          <Check checked={parked} onChange={setParked} label={`The machine is physically parked at ${machine.return_location ?? "its designated return location"}.`} />
-          <Alert message={error} />
-          <Missing items={missing} />
-          <Submit disabled={missing.length > 0} busy={busy} online={online} label="Confirm EOD" onClick={submit} />
+          {machine.status === S_DNO && locked && <Alert message="Do Not Operate — return this machine to its designated location. Admin clearance is still required before use." />}
+          {redundant ? (
+            <Alert tone="eod" message={`End-of-day is already complete for ${fmtDate(machine.required_eod_date)}. No additional return is needed.`} />
+          ) : (
+            <>
+              <PhotoInput file={photo} onPick={setPhoto} label="Clear photo of machine at return location" />
+              {needFuel && <FuelPicker value={fuel} onChange={setFuel} />}
+              <TextInput label="Note (optional)" value={note} onChange={setNote} placeholder="Anything to know" />
+              <Check checked={parked} onChange={setParked} label={`The machine is physically parked at ${machine.return_location ?? "its designated return location"}.`} />
+              <Alert message={error} />
+              <Missing items={missing} />
+              <Submit disabled={missing.length > 0} busy={busy} online={online} label={machine.status === S_DNO ? "Return to designated location" : "Confirm EOD"} onClick={submit} />
+            </>
+          )}
         </>
       )}
     </Shell>
@@ -767,7 +779,7 @@ function ReportIssue({
         p_photo_url: url,
       });
       if (e) throw new Error(rpcError(e));
-      setSaved([`${machine.code} is now DO NOT OPERATE`, `Issue: ${desc.trim()}`, "An admin must clear it before anyone uses it."]);
+      setSaved([`${machine.code} is DO NOT OPERATE`, `Issue: ${desc.trim()}`, "Admin clearance is required before anyone uses it."]);
     } catch (err) {
       setError(err instanceof Error ? rpcError({ message: err.message }) : "Save failed");
     } finally {
@@ -780,6 +792,9 @@ function ReportIssue({
       <MachinePicker machines={machines} value={code} onChange={setCode} empty="No active machines." />
       {machine && (
         <>
+          {(machine.open_issue_count ?? 0) > 0 && (
+            <Alert message={`${machine.code} is already Do Not Operate with ${machine.open_issue_count} open issue${machine.open_issue_count === 1 ? "" : "s"}${machine.open_issue ? `: ${machine.open_issue}` : ""}. You can report a separate issue below.`} />
+          )}
           <OperatorPicker operators={operators} value={reporter} onChange={setReporter} label="Reported by" />
           <label className="block space-y-3">
             <Label>What is wrong?</Label>
