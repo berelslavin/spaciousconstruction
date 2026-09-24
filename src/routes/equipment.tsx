@@ -17,14 +17,19 @@ import {
   type Machine,
 } from "@/lib/equipment";
 
-
 export const Route = createFileRoute("/equipment")({
   head: () => ({
     meta: [
       { title: "Spacious Bay Field — Machines" },
-      { name: "description", content: "Check out, transfer, return or report a machine in a few taps." },
+      {
+        name: "description",
+        content: "Check out, transfer, return or report a machine in a few taps.",
+      },
       { property: "og:title", content: "Spacious Bay Field — Machines" },
-      { property: "og:description", content: "Check out, transfer, return or report a machine in a few taps." },
+      {
+        property: "og:description",
+        content: "Check out, transfer, return or report a machine in a few taps.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -110,7 +115,10 @@ function FieldPage() {
       <div className="flex items-center justify-between gap-2 text-sm font-bold">
         <span className="uppercase tracking-widest text-field-dim">Spacious Bay Field</span>
         <span className="flex items-center gap-2">
-          <span className={`h-3 w-3 rounded-full ${online ? "bg-field-go" : "bg-field-stop"}`} aria-hidden />
+          <span
+            className={`h-3 w-3 rounded-full ${online ? "bg-field-go" : "bg-field-stop"}`}
+            aria-hidden
+          />
           <span>{online ? "Online" : "Offline"}</span>
           <span className="text-field-dim">· {loaded ? `${machines.length} machines` : "…"}</span>
         </span>
@@ -121,7 +129,9 @@ function FieldPage() {
           No connection. Nothing can be saved until you are back online.
         </p>
       )}
-      {loadError && online && <p className="mt-3 rounded-xl bg-field-stop p-3 text-lg font-bold">{loadError}</p>}
+      {loadError && online && (
+        <p className="mt-3 rounded-xl bg-field-stop p-3 text-lg font-bold">{loadError}</p>
+      )}
 
       {flow === null && (
         <>
@@ -136,9 +146,24 @@ function FieldPage() {
       )}
 
       {flow === "checkout" && (
-        <Checkout machines={machines} operators={operators} online={online} onDone={done} onBack={done} goReturn={openReturn} />
+        <Checkout
+          machines={machines}
+          operators={operators}
+          online={online}
+          onDone={done}
+          onBack={done}
+          goReturn={openReturn}
+        />
       )}
-      {flow === "transfer" && <Transfer machines={machines} online={online} onDone={done} onBack={done} goReturn={openReturn} />}
+      {flow === "transfer" && (
+        <Transfer
+          machines={machines}
+          online={online}
+          onDone={done}
+          onBack={done}
+          goReturn={openReturn}
+        />
+      )}
       {flow === "return" && (
         <ReturnEod
           machines={machines}
@@ -149,18 +174,36 @@ function FieldPage() {
           initialCode={returnMachineCode}
         />
       )}
-      {flow === "issue" && <ReportIssue machines={machines} operators={operators} online={online} onDone={done} onBack={done} />}
+      {flow === "issue" && (
+        <ReportIssue
+          machines={machines}
+          operators={operators}
+          online={online}
+          onDone={done}
+          onBack={done}
+        />
+      )}
     </div>
   );
 }
 
-function HomeButton({ label, onClick, danger }: { label: string; onClick: () => void; danger?: boolean }) {
+function HomeButton({
+  label,
+  onClick,
+  danger,
+}: {
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`min-h-[96px] w-full rounded-2xl px-5 py-4 text-left text-[28px] font-black leading-tight active:opacity-80 ${
-        danger ? "border-4 border-field-stop bg-field-panel text-field-ink" : "bg-field-accent text-field-accent-ink"
+        danger
+          ? "border-4 border-field-stop bg-field-panel text-field-ink"
+          : "bg-field-accent text-field-accent-ink"
       }`}
     >
       {label}
@@ -168,10 +211,22 @@ function HomeButton({ label, onClick, danger }: { label: string; onClick: () => 
   );
 }
 
-function Shell({ title, onBack, children }: { title: string; onBack: () => void; children: ReactNode }) {
+function Shell({
+  title,
+  onBack,
+  children,
+}: {
+  title: string;
+  onBack: () => void;
+  children: ReactNode;
+}) {
   return (
     <div className="pb-6">
-      <button type="button" onClick={onBack} className="mt-2 min-h-[56px] pr-6 text-xl font-bold underline">
+      <button
+        type="button"
+        onClick={onBack}
+        className="mt-2 min-h-[56px] pr-6 text-xl font-bold underline"
+      >
         ← Back
       </button>
       <h1 className="text-3xl font-black leading-tight">{title}</h1>
@@ -202,7 +257,11 @@ function MachinePicker({
       <div className="flex items-center justify-between">
         <Label>Machine</Label>
         {chosen && (
-          <button type="button" onClick={() => onChange("")} className="min-h-[56px] pl-4 text-lg font-bold underline">
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="min-h-[56px] pl-4 text-lg font-bold underline"
+          >
             Change
           </button>
         )}
@@ -224,7 +283,9 @@ function MachinePicker({
               <span className="text-2xl font-black leading-tight">
                 {m.code} <span className="font-bold">{m.name}</span>
               </span>
-              <span className={`shrink-0 rounded-lg px-2 py-1 text-sm font-black ${statusTone(m.status)}`}>
+              <span
+                className={`shrink-0 rounded-lg px-2 py-1 text-sm font-black ${statusTone(m.status)}`}
+              >
                 {shortStatus(m.status)}
               </span>
             </span>
@@ -268,7 +329,17 @@ function OperatorPicker({
   );
 }
 
-function TextInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder: string }) {
+function TextInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
   return (
     <label className="block space-y-3">
       <Label>{label}</Label>
@@ -306,7 +377,15 @@ function FuelPicker({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-function Check({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+function Check({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
   return (
     <button
       type="button"
@@ -338,7 +417,19 @@ function Info({ label, value, big }: { label: string; value: ReactNode; big?: bo
   );
 }
 
-function Submit({ disabled, busy, label, onClick, online }: { disabled: boolean; busy: boolean; label: string; onClick: () => void; online: boolean }) {
+function Submit({
+  disabled,
+  busy,
+  label,
+  onClick,
+  online,
+}: {
+  disabled: boolean;
+  busy: boolean;
+  label: string;
+  onClick: () => void;
+  online: boolean;
+}) {
   return (
     <button
       type="button"
@@ -354,7 +445,9 @@ function Submit({ disabled, busy, label, onClick, online }: { disabled: boolean;
 function Alert({ message, tone = "stop" }: { message: string; tone?: "stop" | "eod" }) {
   if (!message) return null;
   return (
-    <p className={`rounded-2xl p-4 text-xl font-bold ${tone === "stop" ? "bg-field-stop text-field-ink" : "bg-field-eod text-field-accent-ink"}`}>
+    <p
+      className={`rounded-2xl p-4 text-xl font-bold ${tone === "stop" ? "bg-field-stop text-field-ink" : "bg-field-eod text-field-accent-ink"}`}
+    >
       {message}
     </p>
   );
@@ -365,7 +458,15 @@ function Missing({ items }: { items: string[] }) {
   return <p className="text-lg font-bold text-field-dim">Still needed: {items.join(", ")}</p>;
 }
 
-function Confirmation({ title, lines, onDone }: { title: string; lines: string[]; onDone: () => void }) {
+function Confirmation({
+  title,
+  lines,
+  onDone,
+}: {
+  title: string;
+  lines: string[];
+  onDone: () => void;
+}) {
   return (
     <div className="pb-6">
       <p className="mt-8 text-6xl" aria-hidden>
@@ -377,14 +478,26 @@ function Confirmation({ title, lines, onDone }: { title: string; lines: string[]
           <p key={l}>{l}</p>
         ))}
       </div>
-      <button type="button" onClick={onDone} className="mt-8 min-h-[88px] w-full rounded-2xl bg-field-accent text-3xl font-black text-field-accent-ink">
+      <button
+        type="button"
+        onClick={onDone}
+        className="mt-8 min-h-[88px] w-full rounded-2xl bg-field-accent text-3xl font-black text-field-accent-ink"
+      >
         Done
       </button>
     </div>
   );
 }
 
-function PhotoInput({ file, onPick, label }: { file: File | null; onPick: (f: File | null) => void; label: string }) {
+function PhotoInput({
+  file,
+  onPick,
+  label,
+}: {
+  file: File | null;
+  onPick: (f: File | null) => void;
+  label: string;
+}) {
   const ref = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState("");
   useEffect(() => {
@@ -411,8 +524,18 @@ function PhotoInput({ file, onPick, label }: { file: File | null; onPick: (f: Fi
           e.target.value = "";
         }}
       />
-      {preview && <img src={preview} alt="Photo preview" className="max-h-80 w-full rounded-2xl border-4 border-field-line object-cover" />}
-      <button type="button" onClick={() => ref.current?.click()} className="min-h-[64px] w-full rounded-2xl border-4 border-field-line text-2xl font-black">
+      {preview && (
+        <img
+          src={preview}
+          alt="Photo preview"
+          className="max-h-80 w-full rounded-2xl border-4 border-field-line object-cover"
+        />
+      )}
+      <button
+        type="button"
+        onClick={() => ref.current?.click()}
+        className="min-h-[64px] w-full rounded-2xl border-4 border-field-line text-2xl font-black"
+      >
         📷 {file ? "Retake photo" : "Take photo"}
       </button>
     </div>
@@ -449,12 +572,11 @@ function Checkout({
   const dno = machine?.status === S_DNO;
   const eodMissing = !!machine?.eod_missing;
   const held = !!machine?.responsible_operator;
-  const blocked =
-    dno
-      ? "DO NOT OPERATE — this machine has an open issue. It cannot be checked out until an admin clears it."
-      : eodMissing
-        ? ""
-        : held
+  const blocked = dno
+    ? "DO NOT OPERATE — this machine has an open issue. It cannot be checked out until an admin clears it."
+    : eodMissing
+      ? ""
+      : held
         ? `Already checked out to ${machine.responsible_operator}. A handoff needs an admin-approved transfer.`
         : "";
   const needFuel = machine ? !machine.fuel_logged_today : false;
@@ -479,30 +601,64 @@ function Checkout({
     });
     setBusy(false);
     if (e) setError(rpcError(e));
-    else setSaved([`${code} ${machine?.name ?? ""}`, `Responsible: ${operator}`, `Task: ${task.trim()}`, "You own it until return or approved transfer."]);
+    else
+      setSaved([
+        `${code} ${machine?.name ?? ""}`,
+        `Responsible: ${operator}`,
+        `Task: ${task.trim()}`,
+        "You own it until return or approved transfer.",
+      ]);
   };
 
   return (
     <Shell title="Check out machine" onBack={onBack}>
-      <MachinePicker machines={machines} value={code} onChange={setCode} empty="No active machines." />
+      <MachinePicker
+        machines={machines}
+        value={code}
+        onChange={setCode}
+        empty="No active machines."
+      />
       {machine && blocked && <Alert message={blocked} />}
-       {machine && !dno && eodMissing && (
+      {machine && !dno && eodMissing && (
         <>
-           <Alert tone="eod" message={`End-of-day for ${machine.code} is missing (last: ${fmtDate(machine.last_eod_date)}). Complete Return / end-of-day first.${held ? ` ${machine.responsible_operator} must return it.` : ""}`} />
-           <button type="button" onClick={() => goReturn(machine.code)} className="min-h-[72px] w-full rounded-2xl bg-field-eod text-2xl font-black text-field-accent-ink">
+          <Alert
+            tone="eod"
+            message={`End-of-day for ${machine.code} is missing (last: ${fmtDate(machine.last_eod_date)}). Complete Return / end-of-day first.${held ? ` ${machine.responsible_operator} must return it.` : ""}`}
+          />
+          <button
+            type="button"
+            onClick={() => goReturn(machine.code)}
+            className="min-h-[72px] w-full rounded-2xl bg-field-eod text-2xl font-black text-field-accent-ink"
+          >
             Go to Return / end-of-day
           </button>
         </>
       )}
-       {machine && !blocked && !eodMissing && (
+      {machine && !blocked && !eodMissing && (
         <>
-          <OperatorPicker operators={operators} value={operator} onChange={setOperator} label="Responsible operator" />
-          <TextInput label="Task / location" value={task} onChange={setTask} placeholder="e.g. Trenching, House 9" />
+          <OperatorPicker
+            operators={operators}
+            value={operator}
+            onChange={setOperator}
+            label="Responsible operator"
+          />
+          <TextInput
+            label="Task / location"
+            value={task}
+            onChange={setTask}
+            placeholder="e.g. Trenching, House 9"
+          />
           {needFuel && <FuelPicker value={fuel} onChange={setFuel} />}
           <Check checked={safe} onChange={setSafe} label={SAFETY_TEXT} />
           <Alert message={error} />
           <Missing items={missing} />
-          <Submit disabled={missing.length > 0} busy={busy} online={online} label="Check out" onClick={submit} />
+          <Submit
+            disabled={missing.length > 0}
+            busy={busy}
+            online={online}
+            label="Check out"
+            onClick={submit}
+          />
         </>
       )}
     </Shell>
@@ -544,17 +700,19 @@ function Transfer({
     setError("");
     if (!code || statusBlocked) return;
     let live = true;
-    void supabase.rpc("get_transfer_destinations", { p_machine_code: code }).then(({ data, error: e }) => {
-      if (!live) return;
-      if (e) {
-        setError(rpcError(e));
-        setDests([]);
-      } else {
-        const list = (data ?? []).map((d: { to_operator: string }) => d.to_operator);
-        setDests(list);
-        if (list.length === 1) setNewOperator(list[0] ?? "");
-      }
-    });
+    void supabase
+      .rpc("get_transfer_destinations", { p_machine_code: code })
+      .then(({ data, error: e }) => {
+        if (!live) return;
+        if (e) {
+          setError(rpcError(e));
+          setDests([]);
+        } else {
+          const list = (data ?? []).map((d: { to_operator: string }) => d.to_operator);
+          setDests(list);
+          if (list.length === 1) setNewOperator(list[0] ?? "");
+        }
+      });
     return () => {
       live = false;
     };
@@ -573,21 +731,38 @@ function Transfer({
     });
     setBusy(false);
     if (e) setError(rpcError(e));
-    else setSaved([`${code} ${machine?.name ?? ""}`, `Now responsible: ${newOperator}`, `Task: ${task.trim()}`]);
+    else
+      setSaved([
+        `${code} ${machine?.name ?? ""}`,
+        `Now responsible: ${newOperator}`,
+        `Task: ${task.trim()}`,
+      ]);
   };
 
-  const missing = [!newOperator && "new operator", !task.trim() && "task/location"].filter(Boolean) as string[];
+  const missing = [!newOperator && "new operator", !task.trim() && "task/location"].filter(
+    Boolean,
+  ) as string[];
 
   return (
     <Shell title="Transfer machine" onBack={onBack}>
-      <MachinePicker machines={held} value={code} onChange={setCode} empty="No machines are checked out right now." />
+      <MachinePicker
+        machines={held}
+        value={code}
+        onChange={setCode}
+        empty="No machines are checked out right now."
+      />
       {machine && (
         <>
           <Info label="Currently responsible" value={machine.responsible_operator} big />
-          {dno && <Alert message="Do Not Operate — this machine cannot be transferred until the issue is cleared by admin." />}
+          {dno && (
+            <Alert message="Do Not Operate — this machine cannot be transferred until the issue is cleared by admin." />
+          )}
           {eodMissing && (
             <>
-              <Alert tone="eod" message="End-of-day is missing for this machine. Complete Return / End-of-Day before transferring it." />
+              <Alert
+                tone="eod"
+                message="End-of-day is missing for this machine. Complete Return / End-of-Day before transferring it."
+              />
               <button
                 type="button"
                 onClick={() => goReturn(machine.code)}
@@ -597,7 +772,9 @@ function Transfer({
               </button>
             </>
           )}
-          {!statusBlocked && dests === null && <p className="text-lg text-field-dim">Checking approvals…</p>}
+          {!statusBlocked && dests === null && (
+            <p className="text-lg text-field-dim">Checking approvals…</p>
+          )}
           {!statusBlocked && dests && dests.length === 0 && (
             <Alert message="No valid transfer authorization for this machine today. Admin approval is required before handing it over." />
           )}
@@ -612,18 +789,33 @@ function Transfer({
                     aria-pressed={newOperator === d}
                     onClick={() => setNewOperator(d)}
                     className={`min-h-[64px] w-full rounded-2xl border-4 px-4 text-left text-2xl font-black ${
-                      newOperator === d ? "border-field-accent bg-field-accent text-field-accent-ink" : "border-field-line"
+                      newOperator === d
+                        ? "border-field-accent bg-field-accent text-field-accent-ink"
+                        : "border-field-line"
                     }`}
                   >
                     {d}
                   </button>
                 ))}
-                <p className="text-base text-field-dim">Approved by admin · valid today only · one use</p>
+                <p className="text-base text-field-dim">
+                  Approved by admin · valid today only · one use
+                </p>
               </div>
-              <TextInput label="Task / location" value={task} onChange={setTask} placeholder="e.g. Grading, House 12" />
+              <TextInput
+                label="Task / location"
+                value={task}
+                onChange={setTask}
+                placeholder="e.g. Grading, House 12"
+              />
               <Alert message={error} />
               <Missing items={missing} />
-              <Submit disabled={missing.length > 0} busy={busy} online={online} label="Transfer" onClick={submit} />
+              <Submit
+                disabled={missing.length > 0}
+                busy={busy}
+                online={online}
+                label="Transfer"
+                onClick={submit}
+              />
             </>
           )}
           {!statusBlocked && dests && dests.length === 0 && <Alert message={error} />}
@@ -696,7 +888,12 @@ function ReturnEod({
       });
       if (e) throw new Error(rpcError(e));
       const eod = (data as { eod_date?: string } | null)?.eod_date ?? todayChicago();
-      setSaved([`${machine.code} ${machine.name ?? ""}`, `EOD complete for ${fmtDate(eod)}`, `At: ${machine.return_location ?? "—"}`, `By: ${who}`]);
+      setSaved([
+        `${machine.code} ${machine.name ?? ""}`,
+        `EOD complete for ${fmtDate(eod)}`,
+        `At: ${machine.return_location ?? "—"}`,
+        `By: ${who}`,
+      ]);
     } catch (err) {
       setError(err instanceof Error ? rpcError({ message: err.message }) : "Save failed");
     } finally {
@@ -706,7 +903,12 @@ function ReturnEod({
 
   return (
     <Shell title="Return / end-of-day" onBack={onBack}>
-      <MachinePicker machines={machines} value={code} onChange={setCode} empty="No active machines." />
+      <MachinePicker
+        machines={machines}
+        value={code}
+        onChange={setCode}
+        empty="No active machines."
+      />
       {machine && (
         <>
           <div className="rounded-2xl border-4 border-field-accent p-4">
@@ -716,20 +918,51 @@ function ReturnEod({
           {locked ? (
             <Info label="Responsible operator (must return it)" value={locked} />
           ) : (
-            !redundant && <OperatorPicker operators={operators} value={operator} onChange={setOperator} label="Who is confirming EOD" />
+            !redundant && (
+              <OperatorPicker
+                operators={operators}
+                value={operator}
+                onChange={setOperator}
+                label="Who is confirming EOD"
+              />
+            )
           )}
-          {machine.status === S_DNO && locked && <Alert message="Do Not Operate — return this machine to its designated location. Admin clearance is still required before use." />}
+          {machine.status === S_DNO && locked && (
+            <Alert message="Do Not Operate — return this machine to its designated location. Admin clearance is still required before use." />
+          )}
           {redundant ? (
-            <Alert tone="eod" message={`End-of-day is already complete for ${fmtDate(machine.required_eod_date)}. No additional return is needed.`} />
+            <Alert
+              tone="eod"
+              message={`End-of-day is already complete for ${fmtDate(machine.required_eod_date)}. No additional return is needed.`}
+            />
           ) : (
             <>
-              <PhotoInput file={photo} onPick={setPhoto} label="Clear photo of machine at return location" />
+              <PhotoInput
+                file={photo}
+                onPick={setPhoto}
+                label="Clear photo of machine at return location"
+              />
               {needFuel && <FuelPicker value={fuel} onChange={setFuel} />}
-              <TextInput label="Note (optional)" value={note} onChange={setNote} placeholder="Anything to know" />
-              <Check checked={parked} onChange={setParked} label={`The machine is physically parked at ${machine.return_location ?? "its designated return location"}.`} />
+              <TextInput
+                label="Note (optional)"
+                value={note}
+                onChange={setNote}
+                placeholder="Anything to know"
+              />
+              <Check
+                checked={parked}
+                onChange={setParked}
+                label={`The machine is physically parked at ${machine.return_location ?? "its designated return location"}.`}
+              />
               <Alert message={error} />
               <Missing items={missing} />
-              <Submit disabled={missing.length > 0} busy={busy} online={online} label={machine.status === S_DNO ? "Return to designated location" : "Confirm EOD"} onClick={submit} />
+              <Submit
+                disabled={missing.length > 0}
+                busy={busy}
+                online={online}
+                label={machine.status === S_DNO ? "Return to designated location" : "Confirm EOD"}
+                onClick={submit}
+              />
             </>
           )}
         </>
@@ -762,7 +995,11 @@ function ReportIssue({
   const [saved, setSaved] = useState<string[] | null>(null);
 
   const machine = machines.find((m) => m.code === code) ?? null;
-  const missing = [!reporter && "reporter", !desc.trim() && "description", !photo && "photo"].filter(Boolean) as string[];
+  const missing = [
+    !reporter && "reporter",
+    !desc.trim() && "description",
+    !photo && "photo",
+  ].filter(Boolean) as string[];
 
   if (saved) return <Confirmation title="Issue reported" lines={saved} onDone={onDone} />;
 
@@ -779,7 +1016,11 @@ function ReportIssue({
         p_photo_url: url,
       });
       if (e) throw new Error(rpcError(e));
-      setSaved([`${machine.code} is DO NOT OPERATE`, `Issue: ${desc.trim()}`, "Admin clearance is required before anyone uses it."]);
+      setSaved([
+        `${machine.code} is DO NOT OPERATE`,
+        `Issue: ${desc.trim()}`,
+        "Admin clearance is required before anyone uses it.",
+      ]);
     } catch (err) {
       setError(err instanceof Error ? rpcError({ message: err.message }) : "Save failed");
     } finally {
@@ -789,13 +1030,25 @@ function ReportIssue({
 
   return (
     <Shell title="Report issue" onBack={onBack}>
-      <MachinePicker machines={machines} value={code} onChange={setCode} empty="No active machines." />
+      <MachinePicker
+        machines={machines}
+        value={code}
+        onChange={setCode}
+        empty="No active machines."
+      />
       {machine && (
         <>
           {(machine.open_issue_count ?? 0) > 0 && (
-            <Alert message={`${machine.code} is already Do Not Operate with ${machine.open_issue_count} open issue${machine.open_issue_count === 1 ? "" : "s"}${machine.open_issue ? `: ${machine.open_issue}` : ""}. You can report a separate issue below.`} />
+            <Alert
+              message={`${machine.code} is already Do Not Operate with ${machine.open_issue_count} open issue${machine.open_issue_count === 1 ? "" : "s"}${machine.open_issue ? `: ${machine.open_issue}` : ""}. You can report a separate issue below.`}
+            />
           )}
-          <OperatorPicker operators={operators} value={reporter} onChange={setReporter} label="Reported by" />
+          <OperatorPicker
+            operators={operators}
+            value={reporter}
+            onChange={setReporter}
+            label="Reported by"
+          />
           <label className="block space-y-3">
             <Label>What is wrong?</Label>
             <textarea
@@ -808,8 +1061,12 @@ function ReportIssue({
           </label>
           <PhotoInput file={photo} onPick={setPhoto} label="Photo of the problem" />
           <div className="rounded-2xl border-4 border-field-stop p-4">
-            <p className="text-2xl font-black text-field-stop">This will mark {machine.code} DO NOT OPERATE</p>
-            <p className="mt-1 text-lg font-bold">No one can check it out or transfer it until an admin clears the issue.</p>
+            <p className="text-2xl font-black text-field-stop">
+              This will mark {machine.code} DO NOT OPERATE
+            </p>
+            <p className="mt-1 text-lg font-bold">
+              No one can check it out or transfer it until an admin clears the issue.
+            </p>
           </div>
           <Alert message={error} />
           <Missing items={missing} />
@@ -826,4 +1083,3 @@ function ReportIssue({
     </Shell>
   );
 }
-
