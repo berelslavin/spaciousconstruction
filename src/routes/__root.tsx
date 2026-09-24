@@ -154,7 +154,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
-        <div className="min-h-screen bg-background pb-20">
+        <div className={isFieldApp ? "min-h-screen bg-field" : "min-h-screen bg-background pb-20"}>
           <div className="mx-auto max-w-lg">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
