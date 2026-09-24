@@ -177,11 +177,20 @@ function MachinePicker({
   onChange: (code: string) => void;
   empty: string;
 }) {
+  const chosen = machines.find((m) => m.code === value);
+  const list = chosen ? [chosen] : machines;
   return (
     <div className="space-y-3">
-      <Label>Machine</Label>
+      <div className="flex items-center justify-between">
+        <Label>Machine</Label>
+        {chosen && (
+          <button type="button" onClick={() => onChange("")} className="min-h-[48px] pl-4 text-lg font-bold underline">
+            Change
+          </button>
+        )}
+      </div>
       {machines.length === 0 && <p className="rounded-2xl bg-field-panel p-4 text-lg">{empty}</p>}
-      {machines.map((m) => {
+      {list.map((m) => {
         const sel = value === m.code;
         return (
           <button
