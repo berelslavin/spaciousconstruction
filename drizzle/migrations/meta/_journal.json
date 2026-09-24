@@ -36,6 +36,13 @@
       "when": 1790223637843,
       "tag": "0004_revoke_dashboard_writes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790259215528,
+      "tag": "0005_crew_checkins",
+      "breakpoints": true
     }
   ]
 }

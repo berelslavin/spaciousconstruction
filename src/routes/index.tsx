@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { contractorById, contractors } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { Empty, Header, Section, StatusPicker, StatusTag } from "@/components/ui-bits";
+import { chicagoTime, useTodayCheckins } from "@/lib/checkins";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,6 +29,9 @@ function TodayPage() {
     }
     return [...map.entries()];
   }, [dayTasks]);
+  const checkins = useTodayCheckins();
+  const expected = byContractor.length;
+  const checkedCount = byContractor.filter(([cid]) => checkins.map[cid]).length;
 
   const missing = contractors.filter(
     (c) => c.regular && !dayTasks.some((t) => t.contractorId === c.id),
@@ -53,18 +57,51 @@ function TodayPage() {
       </div>
 
       <Section title="Schedule">
+        {day === "today" && byContractor.length > 0 ? (
+          <div className="mb-3 grid grid-cols-3 gap-2 text-center">
+            {[
+              { n: expected, l: "Expected", c: "bg-muted text-foreground" },
+              { n: checkedCount, l: "Checked in", c: "bg-ok text-ok-foreground" },
+              { n: expected - checkedCount, l: "Missing", c: expected - checkedCount > 0 ? "bg-warn text-warn-foreground" : "bg-muted text-muted-foreground" },
+            ].map((s) => (
+              <div key={s.l} className={`rounded-xl py-2 ${s.c}`}>
+                <p className="font-display text-2xl leading-none">{s.n}</p>
+                <p className="mt-1 text-xs font-bold uppercase">{s.l}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
         {byContractor.length === 0 ? (
           <Empty>Nothing scheduled.</Empty>
         ) : (
           <div className="space-y-3">
             {byContractor.map(([cid, list]) => {
               const c = contractorById(cid)!;
+              const at = checkins.map[cid];
               return (
                 <div key={cid} className="card-pad">
-                  <Link to="/crews/$id" params={{ id: cid }} className="block">
-                    <p className="text-base font-bold">{c.name}</p>
-                    <p className="text-sm text-muted-foreground">{c.trade}</p>
-                  </Link>
+                  <div className="flex items-center justify-between gap-2">
+                    <Link to="/crews/$id" params={{ id: cid }} className="block min-w-0">
+                      <p className="text-base font-bold">{c.name}</p>
+                      <p className="text-sm text-muted-foreground">{c.trade}</p>
+                    </Link>
+                    {day === "today" ? (
+                      at ? (
+                        <span className="shrink-0 rounded-lg bg-ok px-3 py-2 text-sm font-bold text-ok-foreground">
+                          ✓ Checked in {chicagoTime(at)}
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={!!checkins.pending[cid]}
+                          onClick={() => checkins.checkIn(cid)}
+                          className="tap shrink-0 rounded-lg bg-primary px-4 text-sm font-bold uppercase text-primary-foreground disabled:opacity-60"
+                        >
+                          {checkins.pending[cid] ? "…" : "Check in"}
+                        </button>
+                      )
+                    ) : null}
+                  </div>
                   <div className="mt-2 space-y-3">
                     {list.map((t) => (
                       <div key={t.id} className="rounded-lg bg-surface p-2.5">

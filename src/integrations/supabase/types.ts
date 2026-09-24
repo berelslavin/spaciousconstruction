@@ -138,6 +138,27 @@ export type Database = {
         }
         Relationships: []
       }
+      crew_checkins: {
+        Row: {
+          checked_in_at: string
+          contractor_id: string
+          id: string
+          local_date: string
+        }
+        Insert: {
+          checked_in_at?: string
+          contractor_id: string
+          id?: string
+          local_date: string
+        }
+        Update: {
+          checked_in_at?: string
+          contractor_id?: string
+          id?: string
+          local_date?: string
+        }
+        Relationships: []
+      }
       equipment_assets: {
         Row: {
           category: string
@@ -577,6 +598,21 @@ export type Database = {
         Returns: Json
       }
       admin_settings: { Args: { p_pin: string }; Returns: Json }
+      check_in_crew: {
+        Args: { p_contractor_id: string }
+        Returns: {
+          checked_in_at: string
+          contractor_id: string
+          id: string
+          local_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "crew_checkins"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       checkout_machine: {
         Args: {
           p_fuel_level?: string
