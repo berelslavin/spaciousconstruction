@@ -601,15 +601,15 @@ function Operators({ pin, ops, onSaved }: { pin: string; ops: Op[]; onSaved: () 
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="truncate text-xl font-black">{o.name}</p>
+            <div className="space-y-2">
+              <div>
+                <p className="break-words text-xl font-black">{o.name}</p>
                 <p className="text-sm text-field-dim">
                   {o.active ? "Active" : "Inactive"}
                   {o.custody_count > 0 ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}` : ""}
                 </p>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   className={ghostBtn}
