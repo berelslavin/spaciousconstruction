@@ -283,6 +283,7 @@ export type Database = {
           created_at: string
           current_operator_id: string | null
           current_task_location: string | null
+          custody_since: string | null
           do_not_operate: boolean
           fuel_level: string | null
           fuel_logged_date: string | null
@@ -300,6 +301,7 @@ export type Database = {
           created_at?: string
           current_operator_id?: string | null
           current_task_location?: string | null
+          custody_since?: string | null
           do_not_operate?: boolean
           fuel_level?: string | null
           fuel_logged_date?: string | null
@@ -317,6 +319,7 @@ export type Database = {
           created_at?: string
           current_operator_id?: string | null
           current_task_location?: string | null
+          custody_since?: string | null
           do_not_operate?: boolean
           fuel_level?: string | null
           fuel_logged_date?: string | null
@@ -370,6 +373,7 @@ export type Database = {
           note: string | null
           to_operator_id: string
           used_at: string | null
+          valid_date: string
         }
         Insert: {
           authorized_by: string
@@ -381,6 +385,7 @@ export type Database = {
           note?: string | null
           to_operator_id: string
           used_at?: string | null
+          valid_date?: string
         }
         Update: {
           authorized_by?: string
@@ -392,6 +397,7 @@ export type Database = {
           note?: string | null
           to_operator_id?: string
           used_at?: string | null
+          valid_date?: string
         }
         Relationships: [
           {
@@ -454,15 +460,21 @@ export type Database = {
         Row: {
           code: string | null
           current_task_location: string | null
+          do_not_operate: boolean | null
+          eod_missing: boolean | null
           fuel_level: string | null
           fuel_logged_date: string | null
+          fuel_logged_today: boolean | null
           id: string | null
           last_activity_at: string | null
+          last_activity_type: string | null
           last_eod_date: string | null
           last_return_photo_url: string | null
           name: string | null
           needs_fuel: boolean | null
           open_issue: string | null
+          open_issue_count: number | null
+          required_eod_date: string | null
           responsible_operator: string | null
           return_location: string | null
           status: string | null
@@ -471,6 +483,98 @@ export type Database = {
       }
     }
     Functions: {
+      _eq_require_pin: { Args: { p_pin: string }; Returns: undefined }
+      admin_activity: {
+        Args: {
+          p_machine_code?: string
+          p_pin: string
+          p_today_only?: boolean
+          p_type?: string
+        }
+        Returns: {
+          created_at: string
+          from_operator: string
+          fuel_level: string
+          id: string
+          machine_code: string
+          machine_name: string
+          note: string
+          operator: string
+          photo_url: string
+          task_location: string
+          to_operator: string
+          type: string
+        }[]
+      }
+      admin_authorizations: {
+        Args: { p_pin: string }
+        Returns: {
+          authorized_by: string
+          code: string
+          created_at: string
+          from_operator: string
+          id: string
+          machine_code: string
+          note: string
+          state: string
+          to_operator: string
+          used_at: string
+          valid_date: string
+        }[]
+      }
+      admin_issues: {
+        Args: { p_pin: string }
+        Returns: {
+          clear_note: string
+          cleared_at: string
+          cleared_by: string
+          created_at: string
+          description: string
+          id: string
+          machine_code: string
+          machine_name: string
+          photo_url: string
+          reporter: string
+          status: string
+        }[]
+      }
+      admin_machines: {
+        Args: { p_pin: string }
+        Returns: {
+          active: boolean
+          code: string
+          do_not_operate: boolean
+          id: string
+          name: string
+          responsible_operator: string
+          return_location: string
+        }[]
+      }
+      admin_operators: {
+        Args: { p_pin: string }
+        Returns: {
+          active: boolean
+          custody_count: number
+          id: string
+          name: string
+        }[]
+      }
+      admin_save_machine: {
+        Args: {
+          p_active: boolean
+          p_code: string
+          p_id: string
+          p_name: string
+          p_pin: string
+          p_return_location: string
+        }
+        Returns: Json
+      }
+      admin_save_operator: {
+        Args: { p_active: boolean; p_id: string; p_name: string; p_pin: string }
+        Returns: Json
+      }
+      admin_settings: { Args: { p_pin: string }; Returns: Json }
       checkout_machine: {
         Args: {
           p_fuel_level?: string
@@ -481,11 +585,11 @@ export type Database = {
         }
         Returns: Json
       }
-      clear_machine_issue: {
+      clear_machine_issues: {
         Args: {
           p_clear_note: string
           p_cleared_by: string
-          p_machine_code: string
+          p_issue_ids: string[]
           p_pin: string
         }
         Returns: Json
@@ -500,10 +604,27 @@ export type Database = {
         }
         Returns: Json
       }
+      eod_missing: {
+        Args: {
+          p_custody_since: string
+          p_in_custody: boolean
+          p_last_eod: string
+          p_machine_created: string
+          p_now?: string
+        }
+        Returns: boolean
+      }
+      eod_required_date: { Args: { p_now?: string }; Returns: string }
+      eq_cutoff: { Args: never; Returns: string }
+      get_transfer_destinations: {
+        Args: { p_machine_code: string }
+        Returns: {
+          to_operator: string
+        }[]
+      }
       report_machine_issue: {
         Args: {
           p_description: string
-          p_do_not_operate_confirmed: boolean
           p_machine_code: string
           p_photo_url: string
           p_reporter_name: string
@@ -516,13 +637,13 @@ export type Database = {
           p_machine_code: string
           p_note?: string
           p_operator_name: string
+          p_parked_confirmed: boolean
           p_photo_url: string
         }
         Returns: Json
       }
       transfer_machine: {
         Args: {
-          p_authorization_confirmed: boolean
           p_current_operator_name: string
           p_machine_code: string
           p_new_operator_name: string

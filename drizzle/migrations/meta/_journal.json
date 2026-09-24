@@ -15,6 +15,13 @@
       "when": 1790129398919,
       "tag": "0001_equipment_grants_and_pin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790219327436,
+      "tag": "0002_equipment_control_v2",
+      "breakpoints": true
     }
   ]
 }
