@@ -18,9 +18,16 @@ export const Route = createFileRoute("/equipment-admin")({
   head: () => ({
     meta: [
       { title: "Machine Admin — Spacious Bay" },
-      { name: "description", content: "PIN-protected machine control center: live status, machines, activity, operators, transfers and issues." },
+      {
+        name: "description",
+        content:
+          "PIN-protected machine control center: live status, machines, activity, operators, transfers and issues.",
+      },
       { property: "og:title", content: "Machine Admin — Spacious Bay" },
-      { property: "og:description", content: "PIN-protected machine control center for Spacious Bay Construction." },
+      {
+        property: "og:description",
+        content: "PIN-protected machine control center for Spacious Bay Construction.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -36,8 +43,8 @@ const NULL_ID = null as unknown as string;
 /* ---------------- shared UI ---------------- */
 
 const inputCls =
-  "min-h-[52px] w-full rounded-xl border-2 border-field-line bg-field-panel px-3 text-lg font-bold text-field-ink placeholder:text-field-dim";
-const btnCls = "min-h-[52px] rounded-xl px-4 text-lg font-black disabled:opacity-35";
+  "min-h-[56px] w-full rounded-xl border-2 border-field-line bg-field-panel px-3 text-lg font-bold text-field-ink placeholder:text-field-dim";
+const btnCls = "min-h-[56px] rounded-xl px-4 text-lg font-black disabled:opacity-35";
 const primaryBtn = `${btnCls} bg-field-accent text-field-accent-ink`;
 const ghostBtn = `${btnCls} border-2 border-field-line`;
 
@@ -51,7 +58,11 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 }
 
 function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border-2 border-field-line bg-field-panel p-4 ${className}`}>{children}</div>;
+  return (
+    <div className={`rounded-2xl border-2 border-field-line bg-field-panel p-4 ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 function H2({ children }: { children: ReactNode }) {
@@ -59,18 +70,30 @@ function H2({ children }: { children: ReactNode }) {
 }
 
 function Msg({ err, ok }: { err?: string; ok?: string }) {
-  if (err) return <p className="rounded-xl bg-field-stop p-3 text-base font-bold text-field-ink">{err}</p>;
-  if (ok) return <p className="rounded-xl bg-field-go p-3 text-base font-bold text-field-accent-ink">{ok}</p>;
+  if (err)
+    return <p className="rounded-xl bg-field-stop p-3 text-base font-bold text-field-ink">{err}</p>;
+  if (ok)
+    return (
+      <p className="rounded-xl bg-field-go p-3 text-base font-bold text-field-accent-ink">{ok}</p>
+    );
   return null;
 }
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`min-h-[44px] shrink-0 rounded-full border-2 px-4 text-base font-bold ${
+      className={`min-h-[56px] shrink-0 rounded-full border-2 px-4 text-base font-bold ${
         active ? "border-field-accent bg-field-accent text-field-accent-ink" : "border-field-line"
       }`}
     >
@@ -80,14 +103,23 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 }
 
 function Badge({ status }: { status: string | null }) {
-  return <span className={`shrink-0 rounded-lg px-2 py-1 text-xs font-black ${statusTone(status)}`}>{shortStatus(status)}</span>;
+  return (
+    <span className={`shrink-0 rounded-lg px-2 py-1 text-xs font-black ${statusTone(status)}`}>
+      {shortStatus(status)}
+    </span>
+  );
 }
 
 function Photo({ url }: { url: string | null }) {
   if (!url) return null;
   return (
     <a href={url} target="_blank" rel="noreferrer" className="mt-2 block w-28">
-      <img src={url} alt="Photo" loading="lazy" className="h-20 w-28 rounded-lg border-2 border-field-line object-cover" />
+      <img
+        src={url}
+        alt="Photo"
+        loading="lazy"
+        className="h-20 w-28 rounded-lg border-2 border-field-line object-cover"
+      />
     </a>
   );
 }
@@ -113,7 +145,10 @@ function AdminPage() {
   if (unlocked) return <AdminApp pin={pin} />;
 
   return (
-    <div className="min-h-screen px-5 text-field-ink" style={{ paddingTop: "max(env(safe-area-inset-top), 2.5rem)" }}>
+    <div
+      className="min-h-screen px-5 text-field-ink"
+      style={{ paddingTop: "max(env(safe-area-inset-top), 2.5rem)" }}
+    >
       <p className="text-sm font-bold uppercase tracking-widest text-field-dim">Spacious Bay</p>
       <h1 className="text-4xl font-black">Machine Admin</h1>
       <form
@@ -134,7 +169,11 @@ function AdminPage() {
           className="min-h-[64px] w-full rounded-2xl border-4 border-field-line bg-field-panel px-4 text-3xl font-black tracking-widest text-field-ink placeholder:text-field-dim"
         />
         <Msg err={err} />
-        <button type="submit" disabled={!pin || busy} className="min-h-[64px] w-full rounded-2xl bg-field-accent text-2xl font-black text-field-accent-ink disabled:opacity-35">
+        <button
+          type="submit"
+          disabled={!pin || busy}
+          className="min-h-[64px] w-full rounded-2xl bg-field-accent text-2xl font-black text-field-accent-ink disabled:opacity-35"
+        >
           {busy ? "Checking…" : "Unlock"}
         </button>
       </form>
@@ -165,7 +204,10 @@ function AdminApp({ pin }: { pin: string }) {
   const online = useOnline();
 
   const refresh = useCallback(async () => {
-    const [m, o] = await Promise.all([loadMachines(), supabase.rpc("admin_operators", { p_pin: pin })]);
+    const [m, o] = await Promise.all([
+      loadMachines(),
+      supabase.rpc("admin_operators", { p_pin: pin }),
+    ]);
     if (m.error || o.error) {
       setLoadErr("Could not refresh — check connection.");
       return;
@@ -192,15 +234,31 @@ function AdminApp({ pin }: { pin: string }) {
   const activeOps = ops.filter((o) => o.active).map((o) => o.name);
 
   return (
-    <div className="min-h-screen text-field-ink" style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1.5rem)" }}>
-      <div className="sticky top-0 z-10 border-b-2 border-field-line bg-field px-4 pb-2" style={{ paddingTop: "max(env(safe-area-inset-top), 0.75rem)" }}>
+    <div
+      className="min-h-screen text-field-ink"
+      style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1.5rem)" }}
+    >
+      <div
+        className="sticky top-0 z-10 border-b-2 border-field-line bg-field px-4 pb-2"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 0.75rem)" }}
+      >
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-2xl font-black">Machine Admin</h1>
           <span className="flex items-center gap-2 text-sm font-bold">
-            <span className={`h-3 w-3 rounded-full ${online && !loadErr ? "bg-field-go" : "bg-field-stop"}`} aria-hidden />
+            <span
+              className={`h-3 w-3 rounded-full ${online && !loadErr ? "bg-field-go" : "bg-field-stop"}`}
+              aria-hidden
+            />
             {online && !loadErr ? "Live" : "Offline"}
             <span className="text-field-dim">
-              {refreshed ? refreshed.toLocaleTimeString("en-US", { timeZone: "America/Chicago", hour: "numeric", minute: "2-digit", second: "2-digit" }) : "…"}
+              {refreshed
+                ? refreshed.toLocaleTimeString("en-US", {
+                    timeZone: "America/Chicago",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })
+                : "…"}
             </span>
           </span>
         </div>
@@ -218,7 +276,9 @@ function AdminApp({ pin }: { pin: string }) {
         {tab === "machines" && <Machines pin={pin} onSaved={refresh} />}
         {tab === "activity" && <Activity pin={pin} machines={machines} />}
         {tab === "operators" && <Operators pin={pin} ops={ops} onSaved={refresh} />}
-        {tab === "transfer" && <Transfers pin={pin} machines={machines} operators={activeOps} onSaved={refresh} />}
+        {tab === "transfer" && (
+          <Transfers pin={pin} machines={machines} operators={activeOps} onSaved={refresh} />
+        )}
         {tab === "issues" && <Issues pin={pin} onSaved={refresh} />}
       </div>
     </div>
@@ -231,10 +291,15 @@ type LiveFilter = "all" | "out" | "eod" | "dno" | "fuel" | "due";
 
 function Live({ machines, pin }: { machines: Machine[]; pin: string }) {
   const [filter, setFilter] = useState<LiveFilter>("all");
-  const [sheets, setSheets] = useState<{ sheets_connected?: boolean; sheets_url?: string | null } | null>(null);
+  const [sheets, setSheets] = useState<{
+    sheets_connected?: boolean;
+    sheets_url?: string | null;
+  } | null>(null);
 
   useEffect(() => {
-    void supabase.rpc("admin_settings", { p_pin: pin }).then(({ data }) => setSheets((data as typeof sheets) ?? null));
+    void supabase
+      .rpc("admin_settings", { p_pin: pin })
+      .then(({ data }) => setSheets((data as typeof sheets) ?? null));
   }, [pin]);
 
   const counts = {
@@ -302,32 +367,48 @@ function Live({ machines, pin }: { machines: Machine[]; pin: string }) {
             </p>
             {m.open_issue && (
               <p className="mt-1 text-base font-bold text-field-stop">
-                Issue{(m.open_issue_count ?? 0) > 1 ? ` (${m.open_issue_count})` : ""}: {m.open_issue}
+                Issue{(m.open_issue_count ?? 0) > 1 ? ` (${m.open_issue_count})` : ""}:{" "}
+                {m.open_issue}
               </p>
             )}
             <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
               <dt className="text-field-dim">Fuel</dt>
               <dd className="font-bold">
-                {m.fuel_level ?? "—"} {m.fuel_logged_today ? "· logged today" : <span className="text-field-eod">· due today</span>}
+                {m.fuel_level ?? "—"}{" "}
+                {m.fuel_logged_today ? (
+                  "· logged today"
+                ) : (
+                  <span className="text-field-eod">· due today</span>
+                )}
               </dd>
               <dt className="text-field-dim">Return to</dt>
               <dd className="font-bold">{m.return_location ?? "—"}</dd>
               <dt className="text-field-dim">Last activity</dt>
               <dd className="font-bold">
-                {m.last_activity_type ?? "—"} {m.last_activity_at ? `· ${fmtTime(m.last_activity_at)}` : ""}
+                {m.last_activity_type ?? "—"}{" "}
+                {m.last_activity_at ? `· ${fmtTime(m.last_activity_at)}` : ""}
               </dd>
               <dt className="text-field-dim">Last EOD</dt>
               <dd className="font-bold">{fmtDate(m.last_eod_date)}</dd>
             </dl>
           </Card>
         ))}
-        {shown.length === 0 && <p className="text-lg text-field-dim">Nothing matches this filter.</p>}
+        {shown.length === 0 && (
+          <p className="text-lg text-field-dim">Nothing matches this filter.</p>
+        )}
       </div>
       <Card>
         <H2>Google Sheets</H2>
-        <p className="mt-1 text-base font-bold">{sheets?.sheets_connected ? "Google Sheets connected" : "Google Sheets not connected yet"}</p>
+        <p className="mt-1 text-base font-bold">
+          {sheets?.sheets_connected ? "Google Sheets connected" : "Google Sheets not connected yet"}
+        </p>
         {sheets?.sheets_url && (
-          <a href={sheets.sheets_url} target="_blank" rel="noreferrer" className="mt-2 block break-all text-sm underline">
+          <a
+            href={sheets.sheets_url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 block break-all text-sm underline"
+          >
             {sheets.sheets_url}
           </a>
         )}
@@ -379,10 +460,18 @@ function Machines({ pin, onSaved }: { pin: string; onSaved: () => void }) {
         </button>
       </div>
       <Msg err={err} />
-      {editing === "new" && <MachineForm pin={pin} onDone={saved} onCancel={() => setEditing(null)} />}
+      {editing === "new" && (
+        <MachineForm pin={pin} onDone={saved} onCancel={() => setEditing(null)} />
+      )}
       {list.map((m) =>
         editing === m.id ? (
-          <MachineForm key={m.id} pin={pin} machine={m} onDone={saved} onCancel={() => setEditing(null)} />
+          <MachineForm
+            key={m.id}
+            pin={pin}
+            machine={m}
+            onDone={saved}
+            onCancel={() => setEditing(null)}
+          />
         ) : (
           <Card key={m.id} className={m.active ? "" : "opacity-60"}>
             <div className="flex items-start justify-between gap-2">
@@ -395,7 +484,7 @@ function Machines({ pin, onSaved }: { pin: string; onSaved: () => void }) {
                   {m.active ? "Active" : "Inactive — hidden from workers"}
                   {m.responsible_operator ? ` · with ${m.responsible_operator}` : ""}
                   {m.do_not_operate ? " · DNO" : ""}
-                   {m.eod_missing ? " · Missing EOD" : ""}
+                  {m.eod_missing ? " · Missing EOD" : ""}
                 </p>
               </div>
               <button type="button" className={ghostBtn} onClick={() => setEditing(m.id)}>
@@ -409,7 +498,17 @@ function Machines({ pin, onSaved }: { pin: string; onSaved: () => void }) {
   );
 }
 
-function MachineForm({ pin, machine, onDone, onCancel }: { pin: string; machine?: AdminMachine; onDone: () => void; onCancel: () => void }) {
+function MachineForm({
+  pin,
+  machine,
+  onDone,
+  onCancel,
+}: {
+  pin: string;
+  machine?: AdminMachine;
+  onDone: () => void;
+  onCancel: () => void;
+}) {
   const [code, setCode] = useState(machine?.code ?? "");
   const [name, setName] = useState(machine?.name ?? "");
   const [loc, setLoc] = useState(machine?.return_location ?? "Equipment Bay 1");
@@ -444,10 +543,20 @@ function MachineForm({ pin, machine, onDone, onCancel }: { pin: string; machine?
     <Card className="space-y-3 border-field-accent">
       <p className="text-lg font-black">{machine ? `Edit ${machine.code}` : "New machine"}</p>
       <Field label="Code">
-        <input className={inputCls} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="EX-111" />
+        <input
+          className={inputCls}
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          placeholder="EX-111"
+        />
       </Field>
       <Field label="Name">
-        <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder="Excavator" />
+        <input
+          className={inputCls}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Excavator"
+        />
       </Field>
       <Field label="Designated return location">
         <input className={inputCls} value={loc} onChange={(e) => setLoc(e.target.value)} />
@@ -460,10 +569,23 @@ function MachineForm({ pin, machine, onDone, onCancel }: { pin: string; machine?
           Inactive
         </Chip>
       </div>
-      {machine?.active && !active && deactivateReason && <Msg err={`Cannot deactivate: ${deactivateReason}`} />}
+      {machine?.active && !active && deactivateReason && (
+        <Msg err={`Cannot deactivate: ${deactivateReason}`} />
+      )}
       <Msg err={err} />
       <div className="flex gap-2">
-        <button type="button" className={`${primaryBtn} flex-1`} disabled={busy || !code.trim() || !name.trim() || !loc.trim() || (!!machine?.active && !active && !!deactivateReason)} onClick={save}>
+        <button
+          type="button"
+          className={`${primaryBtn} flex-1`}
+          disabled={
+            busy ||
+            !code.trim() ||
+            !name.trim() ||
+            !loc.trim() ||
+            (!!machine?.active && !active && !!deactivateReason)
+          }
+          onClick={save}
+        >
           {busy ? "Saving…" : "Save"}
         </button>
         <button type="button" className={ghostBtn} onClick={onCancel}>
@@ -490,7 +612,13 @@ type Act = {
   note: string | null;
   photo_url: string | null;
 };
-const ACTION_LABEL: Record<string, string> = { checkout: "Check out", transfer: "Transfer", return: "Return / EOD", issue: "Issue", clear: "Issue cleared" };
+const ACTION_LABEL: Record<string, string> = {
+  checkout: "Check out",
+  transfer: "Transfer",
+  return: "Return / EOD",
+  issue: "Issue",
+  clear: "Issue cleared",
+};
 
 function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
   const [code, setCode] = useState("");
@@ -502,7 +630,12 @@ function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
   useEffect(() => {
     let live = true;
     void supabase
-      .rpc("admin_activity", { p_pin: pin, p_machine_code: code, p_type: type, p_today_only: today })
+      .rpc("admin_activity", {
+        p_pin: pin,
+        p_machine_code: code,
+        p_type: type,
+        p_today_only: today,
+      })
       .then(({ data, error }) => {
         if (!live) return;
         if (error) setErr(rpcError(error));
@@ -520,7 +653,12 @@ function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
     <>
       <H2>Activity log</H2>
       <div className="grid grid-cols-2 gap-2">
-        <select className={inputCls} value={code} onChange={(e) => setCode(e.target.value)} aria-label="Machine">
+        <select
+          className={inputCls}
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          aria-label="Machine"
+        >
           <option value="">All machines</option>
           {machines.map((m) => (
             <option key={m.code} value={m.code}>
@@ -528,7 +666,12 @@ function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
             </option>
           ))}
         </select>
-        <select className={inputCls} value={type} onChange={(e) => setType(e.target.value)} aria-label="Action">
+        <select
+          className={inputCls}
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+          aria-label="Action"
+        >
           <option value="">All actions</option>
           {Object.entries(ACTION_LABEL).map(([k, l]) => (
             <option key={k} value={k}>
@@ -557,7 +700,9 @@ function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
             <span className="shrink-0 text-sm text-field-dim">{fmtTime(a.created_at)}</span>
           </div>
           <p className="text-base font-bold">
-            {a.type === "transfer" ? `${a.from_operator ?? "?"} → ${a.to_operator ?? "?"}` : (a.operator ?? "")}
+            {a.type === "transfer"
+              ? `${a.from_operator ?? "?"} → ${a.to_operator ?? "?"}`
+              : (a.operator ?? "")}
           </p>
           {a.task_location && <p className="text-base">📍 {a.task_location}</p>}
           {a.fuel_level && <p className="text-base">Fuel: {a.fuel_level}</p>}
@@ -583,7 +728,12 @@ function Operators({ pin, ops, onSaved }: { pin: string; ops: Op[]; onSaved: () 
     setBusy(true);
     setErr("");
     setOk("");
-    const { error } = await supabase.rpc("admin_save_operator", { p_pin: pin, p_id: id ?? NULL_ID, p_name: name, p_active: active });
+    const { error } = await supabase.rpc("admin_save_operator", {
+      p_pin: pin,
+      p_id: id ?? NULL_ID,
+      p_name: name,
+      p_active: active,
+    });
     setBusy(false);
     if (error) setErr(rpcError(error));
     else {
@@ -599,9 +749,19 @@ function Operators({ pin, ops, onSaved }: { pin: string; ops: Op[]; onSaved: () 
       <H2>Authorized operators</H2>
       <Card className="space-y-2">
         <Field label="Add operator">
-          <input className={inputCls} value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Full name" />
+          <input
+            className={inputCls}
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Full name"
+          />
         </Field>
-        <button type="button" className={`${primaryBtn} w-full`} disabled={busy || !newName.trim()} onClick={() => save(null, newName, true)}>
+        <button
+          type="button"
+          className={`${primaryBtn} w-full`}
+          disabled={busy || !newName.trim()}
+          onClick={() => save(null, newName, true)}
+        >
           Add operator
         </button>
       </Card>
@@ -610,9 +770,19 @@ function Operators({ pin, ops, onSaved }: { pin: string; ops: Op[]; onSaved: () 
         <Card key={o.id} className={o.active ? "" : "opacity-60"}>
           {editing === o.id ? (
             <div className="space-y-2">
-              <input className={inputCls} value={draft} onChange={(e) => setDraft(e.target.value)} aria-label="Operator name" />
+              <input
+                className={inputCls}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                aria-label="Operator name"
+              />
               <div className="flex gap-2">
-                <button type="button" className={`${primaryBtn} flex-1`} disabled={busy || !draft.trim()} onClick={() => save(o.id, draft, o.active)}>
+                <button
+                  type="button"
+                  className={`${primaryBtn} flex-1`}
+                  disabled={busy || !draft.trim()}
+                  onClick={() => save(o.id, draft, o.active)}
+                >
                   Save name
                 </button>
                 <button type="button" className={ghostBtn} onClick={() => setEditing(null)}>
@@ -626,7 +796,9 @@ function Operators({ pin, ops, onSaved }: { pin: string; ops: Op[]; onSaved: () 
                 <p className="break-words text-xl font-black">{o.name}</p>
                 <p className="text-sm text-field-dim">
                   {o.active ? "Active" : "Inactive"}
-                  {o.custody_count > 0 ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}` : ""}
+                  {o.custody_count > 0
+                    ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}`
+                    : ""}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -674,7 +846,17 @@ type Auth = {
   state: string;
 };
 
-function Transfers({ pin, machines, operators, onSaved }: { pin: string; machines: Machine[]; operators: string[]; onSaved: () => void }) {
+function Transfers({
+  pin,
+  machines,
+  operators,
+  onSaved,
+}: {
+  pin: string;
+  machines: Machine[];
+  operators: string[];
+  onSaved: () => void;
+}) {
   const held = machines.filter((m) => !!m.responsible_operator);
   const [code, setCode] = useState("");
   const [to, setTo] = useState("");
@@ -712,7 +894,9 @@ function Transfers({ pin, machines, operators, onSaved }: { pin: string; machine
     setBusy(false);
     if (error) setErr(rpcError(error));
     else {
-      setOk(`Approved: ${code} from ${machine?.responsible_operator} → ${to}. Valid today only, one use.`);
+      setOk(
+        `Approved: ${code} from ${machine?.responsible_operator} → ${to}. Valid today only, one use.`,
+      );
       setCode("");
       setTo("");
       setNote("");
@@ -733,45 +917,84 @@ function Transfers({ pin, machines, operators, onSaved }: { pin: string; machine
       <H2>Transfer authorization</H2>
       <Card className="space-y-3">
         <Field label="Machine in custody">
-          <select className={inputCls} value={code} onChange={(e) => { setCode(e.target.value); setTo(""); }}>
+          <select
+            className={inputCls}
+            value={code}
+            onChange={(e) => {
+              setCode(e.target.value);
+              setTo("");
+            }}
+          >
             <option value="">{held.length ? "Choose…" : "No machines in custody"}</option>
             {held.map((m) => (
               <option key={m.code} value={m.code}>
-                {m.code} — {m.responsible_operator}{m.do_not_operate ? " — DNO" : m.eod_missing ? " — Missing EOD" : ""}
+                {m.code} — {m.responsible_operator}
+                {m.do_not_operate ? " — DNO" : m.eod_missing ? " — Missing EOD" : ""}
               </option>
             ))}
           </select>
         </Field>
         {machine && (
           <>
-            <p className="text-base">Current operator: <b>{machine.responsible_operator}</b></p>
-            {dno && <Msg err="Do Not Operate — clear all open issues before authorizing a transfer." />}
-            {eodBlocked && <p className="rounded-xl bg-field-eod p-3 text-base font-bold text-field-accent-ink">End-of-day is missing. Return / end-of-day is required before authorizing a transfer.</p>}
+            <p className="text-base">
+              Current operator: <b>{machine.responsible_operator}</b>
+            </p>
+            {dno && (
+              <Msg err="Do Not Operate — clear all open issues before authorizing a transfer." />
+            )}
+            {eodBlocked && (
+              <p className="rounded-xl bg-field-eod p-3 text-base font-bold text-field-accent-ink">
+                End-of-day is missing. Return / end-of-day is required before authorizing a
+                transfer.
+              </p>
+            )}
           </>
         )}
-        {eligible && <Field label="New responsible operator">
-          <select className={inputCls} value={to} onChange={(e) => setTo(e.target.value)}>
-            <option value="">Choose…</option>
-            {operators
-              .filter((o) => o !== machine?.responsible_operator)
-              .map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-          </select>
-        </Field>}
-        {eligible && <Field label="Authorized by">
-          <input className={inputCls} value={by} onChange={(e) => setBy(e.target.value)} placeholder="Your name" />
-        </Field>}
-        {eligible && <Field label="Note (optional)">
-          <input className={inputCls} value={note} onChange={(e) => setNote(e.target.value)} />
-        </Field>}
-        {eligible && <p className="text-sm font-bold text-field-accent">Valid today only (America/Chicago) · one use</p>}
+        {eligible && (
+          <Field label="New responsible operator">
+            <select className={inputCls} value={to} onChange={(e) => setTo(e.target.value)}>
+              <option value="">Choose…</option>
+              {operators
+                .filter((o) => o !== machine?.responsible_operator)
+                .map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+            </select>
+          </Field>
+        )}
+        {eligible && (
+          <Field label="Authorized by">
+            <input
+              className={inputCls}
+              value={by}
+              onChange={(e) => setBy(e.target.value)}
+              placeholder="Your name"
+            />
+          </Field>
+        )}
+        {eligible && (
+          <Field label="Note (optional)">
+            <input className={inputCls} value={note} onChange={(e) => setNote(e.target.value)} />
+          </Field>
+        )}
+        {eligible && (
+          <p className="text-sm font-bold text-field-accent">
+            Valid today only (America/Chicago) · one use
+          </p>
+        )}
         <Msg err={err} ok={ok} />
-        {eligible && <button type="button" className={`${primaryBtn} w-full`} disabled={busy || !to || !by.trim()} onClick={submit}>
-          {busy ? "Saving…" : "Approve transfer"}
-        </button>}
+        {eligible && (
+          <button
+            type="button"
+            className={`${primaryBtn} w-full`}
+            disabled={busy || !to || !by.trim()}
+            onClick={submit}
+          >
+            {busy ? "Saving…" : "Approve transfer"}
+          </button>
+        )}
       </Card>
       <p className="pt-2 text-lg font-black">Recent authorizations</p>
       {auths.length === 0 && <p className="text-field-dim">None yet.</p>}
@@ -781,7 +1004,11 @@ function Transfers({ pin, machines, operators, onSaved }: { pin: string; machine
             <p className="text-lg font-black">
               {a.machine_code}: {a.from_operator} → {a.to_operator}
             </p>
-            <span className={`shrink-0 rounded-lg px-2 py-1 text-xs font-black uppercase ${stateTone[a.state] ?? ""}`}>{a.state}</span>
+            <span
+              className={`shrink-0 rounded-lg px-2 py-1 text-xs font-black uppercase ${stateTone[a.state] ?? ""}`}
+            >
+              {a.state}
+            </span>
           </div>
           <p className="text-sm text-field-dim">
             By {a.authorized_by} · for {fmtDate(a.valid_date)}
@@ -835,7 +1062,9 @@ function Issues({ pin, onSaved }: { pin: string; onSaved: () => void }) {
     <>
       <H2>Issues / Do Not Operate</H2>
       <Msg err={err} />
-      {byMachine.length === 0 && <p className="text-lg text-field-dim">No open issues. Every machine is cleared.</p>}
+      {byMachine.length === 0 && (
+        <p className="text-lg text-field-dim">No open issues. Every machine is cleared.</p>
+      )}
       {byMachine.map(([code, list]) => (
         <ClearBox
           key={code}
@@ -856,7 +1085,8 @@ function Issues({ pin, onSaved }: { pin: string; onSaved: () => void }) {
             {i.machine_code} · {i.description}
           </p>
           <p className="text-sm text-field-dim">
-            Reported {fmtTime(i.created_at)} by {i.reporter ?? "?"} · cleared {fmtTime(i.cleared_at)} by {i.cleared_by}
+            Reported {fmtTime(i.created_at)} by {i.reporter ?? "?"} · cleared{" "}
+            {fmtTime(i.cleared_at)} by {i.cleared_by}
           </p>
           <p className="text-sm">Fix: {i.clear_note}</p>
         </Card>
@@ -865,7 +1095,17 @@ function Issues({ pin, onSaved }: { pin: string; onSaved: () => void }) {
   );
 }
 
-function ClearBox({ code, issues, pin, onDone }: { code: string; issues: Issue[]; pin: string; onDone: () => void }) {
+function ClearBox({
+  code,
+  issues,
+  pin,
+  onDone,
+}: {
+  code: string;
+  issues: Issue[];
+  pin: string;
+  onDone: () => void;
+}) {
   const [sel, setSel] = useState<string[]>(issues.length === 1 ? [issues[0]?.id ?? ""] : []);
   const [by, setBy] = useState("");
   const [note, setNote] = useState("");
@@ -876,7 +1116,12 @@ function ClearBox({ code, issues, pin, onDone }: { code: string; issues: Issue[]
   const submit = async () => {
     setBusy(true);
     setErr("");
-    const { error } = await supabase.rpc("clear_machine_issues", { p_pin: pin, p_issue_ids: sel, p_cleared_by: by.trim(), p_clear_note: note.trim() });
+    const { error } = await supabase.rpc("clear_machine_issues", {
+      p_pin: pin,
+      p_issue_ids: sel,
+      p_cleared_by: by.trim(),
+      p_clear_note: note.trim(),
+    });
     setBusy(false);
     if (error) setErr(rpcError(error));
     else onDone();
@@ -901,7 +1146,9 @@ function ClearBox({ code, issues, pin, onDone }: { code: string; issues: Issue[]
             onClick={() => setSel(on ? sel.filter((x) => x !== i.id) : [...sel, i.id])}
             className={`flex w-full items-start gap-3 rounded-xl border-2 p-3 text-left ${on ? "border-field-accent" : "border-field-line"}`}
           >
-            <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-2 font-black ${on ? "border-field-accent bg-field-accent text-field-accent-ink" : "border-field-dim"}`}>
+            <span
+              className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-2 font-black ${on ? "border-field-accent bg-field-accent text-field-accent-ink" : "border-field-dim"}`}
+            >
               {on ? "✓" : ""}
             </span>
             <span className="min-w-0">
@@ -914,15 +1161,34 @@ function ClearBox({ code, issues, pin, onDone }: { code: string; issues: Issue[]
           </button>
         );
       })}
-      <input className={inputCls} value={by} onChange={(e) => setBy(e.target.value)} placeholder="Cleared by (your name)" aria-label="Cleared by" />
-      <input className={inputCls} value={note} onChange={(e) => setNote(e.target.value)} placeholder="What was fixed (required)" aria-label="Clearance note" />
+      <input
+        className={inputCls}
+        value={by}
+        onChange={(e) => setBy(e.target.value)}
+        placeholder="Cleared by (your name)"
+        aria-label="Cleared by"
+      />
+      <input
+        className={inputCls}
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="What was fixed (required)"
+        aria-label="Clearance note"
+      />
       {sel.length > 0 && (
         <p className={`text-base font-bold ${all ? "text-field-go" : "text-field-eod"}`}>
-          {all ? `All ${issues.length} open issue${issues.length > 1 ? "s" : ""} selected — ${code} returns to service.` : `${sel.length} of ${issues.length} selected — ${code} stays Do Not Operate.`}
+          {all
+            ? `All ${issues.length} open issue${issues.length > 1 ? "s" : ""} selected — ${code} returns to service.`
+            : `${sel.length} of ${issues.length} selected — ${code} stays Do Not Operate.`}
         </p>
       )}
       <Msg err={err} />
-      <button type="button" className={`${primaryBtn} w-full`} disabled={busy || sel.length === 0 || !by.trim() || !note.trim()} onClick={submit}>
+      <button
+        type="button"
+        className={`${primaryBtn} w-full`}
+        disabled={busy || sel.length === 0 || !by.trim() || !note.trim()}
+        onClick={submit}
+      >
         {busy ? "Saving…" : `Clear ${sel.length || ""} issue${sel.length === 1 ? "" : "s"}`}
       </button>
     </Card>

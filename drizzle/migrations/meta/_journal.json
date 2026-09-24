@@ -29,6 +29,13 @@
       "when": 1790220297553,
       "tag": "0003_align_equipment_safety_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790223637843,
+      "tag": "0004_revoke_dashboard_writes",
+      "breakpoints": true
     }
   ]
 }
