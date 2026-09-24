@@ -76,15 +76,15 @@ function TodayPage() {
                       <p className="truncate text-xs text-muted-foreground">{work}</p>
                     </Link>
                     {at ? (
-                      <span className="flex min-h-11 shrink-0 items-center rounded-lg bg-ok px-3 text-sm font-bold text-ok-foreground">
-                        ✓ {chicagoTime(at)}
+                      <span className="flex min-h-11 shrink-0 items-center px-1 text-sm font-bold text-ok">
+                        ✓ Came {chicagoTime(at)}
                       </span>
                     ) : (
                       <button
                         type="button"
                         disabled={!!checkins.pending[cid]}
                         onClick={() => checkins.checkIn(cid)}
-                        className="min-h-11 shrink-0 rounded-lg bg-primary px-4 text-sm font-bold uppercase text-primary-foreground disabled:opacity-60"
+                        className="min-h-11 shrink-0 px-2 text-sm font-bold text-primary underline underline-offset-4 disabled:opacity-60"
                       >
                         {checkins.pending[cid] ? "…" : "Mark came"}
                       </button>
