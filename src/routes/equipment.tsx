@@ -47,6 +47,7 @@ const SAFETY_TEXT =
 
 function FieldPage() {
   const [flow, setFlow] = useState<Flow | null>(null);
+  const [returnMachineCode, setReturnMachineCode] = useState("");
   const [machines, setMachines] = useState<Machine[]>([]);
   const [operators, setOperators] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -81,11 +82,19 @@ function FieldPage() {
 
   const done = () => {
     setFlow(null);
+    setReturnMachineCode("");
     window.scrollTo(0, 0);
     void load();
   };
   const open = (f: Flow) => {
+    setReturnMachineCode("");
     setFlow(f);
+    window.scrollTo(0, 0);
+    void load();
+  };
+  const openReturn = (code = "") => {
+    setReturnMachineCode(code);
+    setFlow("return");
     window.scrollTo(0, 0);
     void load();
   };
@@ -127,10 +136,19 @@ function FieldPage() {
       )}
 
       {flow === "checkout" && (
-        <Checkout machines={machines} operators={operators} online={online} onDone={done} onBack={done} goReturn={() => open("return")} />
+        <Checkout machines={machines} operators={operators} online={online} onDone={done} onBack={done} goReturn={() => openReturn()} />
       )}
-      {flow === "transfer" && <Transfer machines={machines} online={online} onDone={done} onBack={done} />}
-      {flow === "return" && <ReturnEod machines={machines} operators={operators} online={online} onDone={done} onBack={done} />}
+      {flow === "transfer" && <Transfer machines={machines} online={online} onDone={done} onBack={done} goReturn={openReturn} />}
+      {flow === "return" && (
+        <ReturnEod
+          machines={machines}
+          operators={operators}
+          online={online}
+          onDone={done}
+          onBack={done}
+          initialCode={returnMachineCode}
+        />
+      )}
       {flow === "issue" && <ReportIssue machines={machines} operators={operators} online={online} onDone={done} onBack={done} />}
     </div>
   );
@@ -489,7 +507,19 @@ function Checkout({
 
 /* ---------------- Transfer ---------------- */
 
-function Transfer({ machines, online, onDone, onBack }: { machines: Machine[]; online: boolean; onDone: () => void; onBack: () => void }) {
+function Transfer({
+  machines,
+  online,
+  onDone,
+  onBack,
+  goReturn,
+}: {
+  machines: Machine[];
+  online: boolean;
+  onDone: () => void;
+  onBack: () => void;
+  goReturn: (code: string) => void;
+}) {
   const held = machines.filter((m) => !!m.responsible_operator);
   const [code, setCode] = useState("");
   const [dests, setDests] = useState<string[] | null>(null);
@@ -501,12 +531,14 @@ function Transfer({ machines, online, onDone, onBack }: { machines: Machine[]; o
 
   const machine = held.find((m) => m.code === code) ?? null;
   const dno = machine?.status === S_DNO;
+  const eodMissing = machine?.status === S_EOD;
+  const statusBlocked = dno || eodMissing;
 
   useEffect(() => {
     setDests(null);
     setNewOperator("");
     setError("");
-    if (!code || dno) return;
+    if (!code || statusBlocked) return;
     let live = true;
     void supabase.rpc("get_transfer_destinations", { p_machine_code: code }).then(({ data, error: e }) => {
       if (!live) return;
@@ -522,7 +554,7 @@ function Transfer({ machines, online, onDone, onBack }: { machines: Machine[]; o
     return () => {
       live = false;
     };
-  }, [code, dno]);
+  }, [code, statusBlocked]);
 
   if (saved) return <Confirmation title="Transferred" lines={saved} onDone={onDone} />;
 
@@ -548,12 +580,24 @@ function Transfer({ machines, online, onDone, onBack }: { machines: Machine[]; o
       {machine && (
         <>
           <Info label="Currently responsible" value={machine.responsible_operator} big />
-          {dno && <Alert message="DO NOT OPERATE — this machine cannot be transferred. Return it to its designated location." />}
-          {!dno && dests === null && <p className="text-lg text-field-dim">Checking approvals…</p>}
-          {!dno && dests && dests.length === 0 && (
+          {dno && <Alert message="Do Not Operate — this machine cannot be transferred until the issue is cleared by admin." />}
+          {eodMissing && (
+            <>
+              <Alert tone="eod" message="End-of-day is missing for this machine. Complete Return / End-of-Day before transferring it." />
+              <button
+                type="button"
+                onClick={() => goReturn(machine.code)}
+                className="min-h-[80px] w-full rounded-2xl bg-field-eod px-4 text-2xl font-black text-field-accent-ink"
+              >
+                Go to Return / End-of-Day
+              </button>
+            </>
+          )}
+          {!statusBlocked && dests === null && <p className="text-lg text-field-dim">Checking approvals…</p>}
+          {!statusBlocked && dests && dests.length === 0 && (
             <Alert message="No valid transfer authorization for this machine today. Admin approval is required before handing it over." />
           )}
-          {!dno && dests && dests.length > 0 && (
+          {!statusBlocked && dests && dests.length > 0 && (
             <>
               <div className="space-y-3">
                 <Label>Approved new operator</Label>
@@ -578,7 +622,7 @@ function Transfer({ machines, online, onDone, onBack }: { machines: Machine[]; o
               <Submit disabled={missing.length > 0} busy={busy} online={online} label="Transfer" onClick={submit} />
             </>
           )}
-          {!dno && dests && dests.length === 0 && <Alert message={error} />}
+          {!statusBlocked && dests && dests.length === 0 && <Alert message={error} />}
         </>
       )}
     </Shell>
@@ -593,14 +637,16 @@ function ReturnEod({
   online,
   onDone,
   onBack,
+  initialCode,
 }: {
   machines: Machine[];
   operators: string[];
   online: boolean;
   onDone: () => void;
   onBack: () => void;
+  initialCode: string;
 }) {
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(initialCode);
   const [operator, setOperator] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [fuel, setFuel] = useState("");
