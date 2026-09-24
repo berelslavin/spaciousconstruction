@@ -36,8 +36,8 @@ const NULL_ID = null as unknown as string;
 /* ---------------- shared UI ---------------- */
 
 const inputCls =
-  "min-h-[52px] w-full rounded-xl border-2 border-field-line bg-field-panel px-3 text-lg font-bold text-field-ink placeholder:text-field-dim";
-const btnCls = "min-h-[52px] rounded-xl px-4 text-lg font-black disabled:opacity-35";
+  "min-h-[56px] w-full rounded-xl border-2 border-field-line bg-field-panel px-3 text-lg font-bold text-field-ink placeholder:text-field-dim";
+const btnCls = "min-h-[56px] rounded-xl px-4 text-lg font-black disabled:opacity-35";
 const primaryBtn = `${btnCls} bg-field-accent text-field-accent-ink`;
 const ghostBtn = `${btnCls} border-2 border-field-line`;
 
@@ -70,7 +70,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`min-h-[44px] shrink-0 rounded-full border-2 px-4 text-base font-bold ${
+      className={`min-h-[56px] shrink-0 rounded-full border-2 px-4 text-base font-bold ${
         active ? "border-field-accent bg-field-accent text-field-accent-ink" : "border-field-line"
       }`}
     >

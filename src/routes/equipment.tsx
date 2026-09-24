@@ -202,7 +202,7 @@ function MachinePicker({
       <div className="flex items-center justify-between">
         <Label>Machine</Label>
         {chosen && (
-          <button type="button" onClick={() => onChange("")} className="min-h-[48px] pl-4 text-lg font-bold underline">
+          <button type="button" onClick={() => onChange("")} className="min-h-[56px] pl-4 text-lg font-bold underline">
             Change
           </button>
         )}
