@@ -17,8 +17,6 @@ import {
   type Machine,
 } from "@/lib/equipment";
 
-export type { Machine };
-export { todayChicago };
 
 export const Route = createFileRoute("/equipment")({
   head: () => ({
@@ -759,4 +757,3 @@ function ReportIssue({
   );
 }
 
-export { S_OUT };
