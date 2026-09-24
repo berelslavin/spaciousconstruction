@@ -16,6 +16,7 @@ export type Machine = {
   fuel_logged_today: boolean | null;
   last_eod_date: string | null;
   eod_missing: boolean | null;
+  required_eod_date: string | null;
   open_issue: string | null;
   open_issue_count: number | null;
   needs_fuel: boolean | null;
