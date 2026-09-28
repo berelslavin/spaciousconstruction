@@ -136,11 +136,11 @@ function FieldPage() {
       {flow === null && (
         <>
           <h1 className="mt-5 text-4xl font-black leading-tight">What are you doing?</h1>
-          <div className="mt-5 space-y-4">
-            <HomeButton label="Check out machine" onClick={() => open("checkout")} />
-            <HomeButton label="Transfer machine" onClick={() => open("transfer")} />
-            <HomeButton label="Return machine / end-of-day" onClick={() => open("return")} />
-            <HomeButton label="Report issue" onClick={() => open("issue")} danger />
+          <div className="mt-5 space-y-3">
+            <HomeButton label="Check out machine" hint="Start using a machine" onClick={() => open("checkout")} />
+            <HomeButton label="Transfer machine" hint="Hand over with admin approval" onClick={() => open("transfer")} />
+            <HomeButton label="Return machine / end-of-day" hint="Park it, take a photo" onClick={() => open("return")} />
+            <HomeButton label="Report issue" hint="Damage or defect — stops the machine" onClick={() => open("issue")} danger />
           </div>
         </>
       )}
@@ -189,10 +189,12 @@ function FieldPage() {
 
 function HomeButton({
   label,
+  hint,
   onClick,
   danger,
 }: {
   label: string;
+  hint: string;
   onClick: () => void;
   danger?: boolean;
 }) {
@@ -200,13 +202,17 @@ function HomeButton({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-[96px] w-full rounded-2xl px-5 py-4 text-left text-[28px] font-black leading-tight active:opacity-80 ${
+      className={`flex min-h-[92px] w-full items-center justify-between gap-3 rounded-2xl px-5 py-4 text-left active:scale-[0.99] active:opacity-80 ${
         danger
           ? "border-4 border-field-stop bg-field-panel text-field-ink"
           : "bg-field-accent text-field-accent-ink"
       }`}
     >
-      {label}
+      <span>
+        <span className="block text-[26px] font-black leading-tight">{label}</span>
+        <span className="mt-0.5 block text-base font-semibold opacity-75">{hint}</span>
+      </span>
+      <span aria-hidden className="text-3xl font-black opacity-60">›</span>
     </button>
   );
 }
@@ -267,34 +273,40 @@ function MachinePicker({
         )}
       </div>
       {machines.length === 0 && <p className="rounded-2xl bg-field-panel p-4 text-lg">{empty}</p>}
-      {list.map((m) => {
-        const sel = value === m.code;
-        return (
-          <button
-            key={m.code}
-            type="button"
-            onClick={() => onChange(sel ? "" : m.code)}
-            aria-pressed={sel}
-            className={`block w-full rounded-2xl border-4 px-4 py-3 text-left ${
-              sel ? "border-field-accent bg-field-panel" : "border-field-line"
-            }`}
-          >
-            <span className="flex items-start justify-between gap-2">
-              <span className="text-2xl font-black leading-tight">
-                {m.code} <span className="font-bold">{m.name}</span>
-              </span>
-              <span
-                className={`shrink-0 rounded-lg px-2 py-1 text-sm font-black ${statusTone(m.status)}`}
+      {list.length > 0 && (
+        <div
+          className={`divide-y divide-field-line overflow-hidden rounded-2xl ${
+            chosen ? "border-4 border-field-accent bg-field-panel" : "border-2 border-field-line"
+          }`}
+        >
+          {list.map((m) => {
+            const sel = value === m.code;
+            return (
+              <button
+                key={m.code}
+                type="button"
+                onClick={() => onChange(sel ? "" : m.code)}
+                aria-pressed={sel}
+                className="flex min-h-[64px] w-full items-center gap-3 px-4 py-2 text-left active:bg-field-panel"
               >
-                {shortStatus(m.status)}
-              </span>
-            </span>
-            <span className="mt-1 block text-base text-field-dim">
-              {m.responsible_operator ? `With ${m.responsible_operator}` : "No one has it"}
-            </span>
-          </button>
-        );
-      })}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-xl font-black leading-tight">
+                    {m.code} <span className="font-bold text-field-dim">{m.name}</span>
+                  </span>
+                  <span className="block truncate text-sm text-field-dim">
+                    {m.responsible_operator ? `With ${m.responsible_operator}` : "No one has it"}
+                  </span>
+                </span>
+                <span
+                  className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-black ${statusTone(m.status)}`}
+                >
+                  {shortStatus(m.status)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
