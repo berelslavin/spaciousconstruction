@@ -9,6 +9,7 @@ import {
   S_EOD,
   S_OUT,
   fmtDate,
+  fmtTime,
   loadMachines,
   rpcError,
   shortStatus,
