@@ -236,6 +236,61 @@ export type Database = {
           },
         ]
       }
+      fuel_requests: {
+        Row: {
+          created_at: string
+          fuel_level: string | null
+          fueled_at: string | null
+          fueled_by: string | null
+          id: string
+          machine_id: string
+          note: string | null
+          requested_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          fuel_level?: string | null
+          fueled_at?: string | null
+          fueled_by?: string | null
+          id?: string
+          machine_id: string
+          note?: string | null
+          requested_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          fuel_level?: string | null
+          fueled_at?: string | null
+          fueled_by?: string | null
+          id?: string
+          machine_id?: string
+          note?: string | null
+          requested_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fuel_requests_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machine_dashboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fuel_requests_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fuel_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       issues: {
         Row: {
           clear_note: string | null
@@ -406,18 +461,21 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          fuel_runner: boolean
           id: string
           name: string
         }
         Insert: {
           active?: boolean
           created_at?: string
+          fuel_runner?: boolean
           id?: string
           name: string
         }
         Update: {
           active?: boolean
           created_at?: string
+          fuel_runner?: boolean
           id?: string
           name?: string
         }
@@ -646,6 +704,10 @@ export type Database = {
         Args: { p_active: boolean; p_id: string; p_name: string; p_pin: string }
         Returns: Json
       }
+      admin_set_fuel_runner: {
+        Args: { p_on: boolean; p_operator_id: string; p_pin: string }
+        Returns: Json
+      }
       admin_set_operator_machines: {
         Args: {
           p_machine_codes: string[]
@@ -689,6 +751,15 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_fuel_request: {
+        Args: {
+          p_by: string
+          p_fuel_level: string
+          p_id: string
+          p_pin?: string
+        }
+        Returns: Json
+      }
       create_transfer_authorization: {
         Args: {
           p_authorized_by: string
@@ -711,10 +782,28 @@ export type Database = {
       }
       eod_required_date: { Args: { p_now?: string }; Returns: string }
       eq_cutoff: { Args: never; Returns: string }
+      fuel_runners: {
+        Args: never
+        Returns: {
+          name: string
+        }[]
+      }
       get_transfer_destinations: {
         Args: { p_machine_code: string }
         Returns: {
           to_operator: string
+        }[]
+      }
+      open_fuel_requests: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          machine_code: string
+          machine_name: string
+          note: string
+          requested_by: string
+          task_location: string
         }[]
       }
       operator_can_use: {
@@ -734,6 +823,14 @@ export type Database = {
           p_machine_code: string
           p_photo_url: string
           p_reporter_name: string
+        }
+        Returns: Json
+      }
+      request_fuel: {
+        Args: {
+          p_machine_code: string
+          p_note?: string
+          p_operator_name: string
         }
         Returns: Json
       }
