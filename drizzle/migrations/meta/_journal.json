@@ -71,6 +71,13 @@
       "when": 1790557538986,
       "tag": "0009_admin_force_return",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790558008763,
+      "tag": "0010_operator_machine_access",
+      "breakpoints": true
     }
   ]
 }
