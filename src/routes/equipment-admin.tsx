@@ -977,6 +977,7 @@ function Operators({
     }
   };
   const [newName, setNewName] = useState("");
+  const [expand, setExpand] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [err, setErr] = useState("");
