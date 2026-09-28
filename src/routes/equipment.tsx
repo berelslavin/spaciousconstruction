@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+// me/saveMe: this phone remembers the last operator (localStorage sb_operator) to pre-fill pickers.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
