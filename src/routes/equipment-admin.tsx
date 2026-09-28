@@ -602,25 +602,28 @@ function Machines({ pin, onSaved }: { pin: string; onSaved: () => void }) {
       {editing === "new" && (
         <MachineForm pin={pin} onDone={saved} onCancel={() => setEditing(null)} />
       )}
-      {list.map((m) =>
-        editing === m.id ? (
-          <MachineForm
-            key={m.id}
-            pin={pin}
-            machine={m}
-            onDone={saved}
-            onCancel={() => setEditing(null)}
-          />
-        ) : (
-          <Card key={m.id} className={m.active ? "" : "opacity-60"}>
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-xl font-black">
+      <div className="divide-y divide-field-line overflow-hidden rounded-2xl border-2 border-field-line">
+        {list.map((m) =>
+          editing === m.id ? (
+            <div key={m.id} className="p-2">
+              <MachineForm
+                pin={pin}
+                machine={m}
+                onDone={saved}
+                onCancel={() => setEditing(null)}
+              />
+            </div>
+          ) : (
+            <div
+              key={m.id}
+              className={`flex min-h-[56px] items-center gap-3 px-3 py-2 ${m.active ? "" : "opacity-60"}`}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-lg font-black leading-tight">
                   {m.code} <span className="font-bold">{m.name}</span>
                 </p>
-                <p className="text-base">Return: {m.return_location}</p>
-                <p className="text-sm text-field-dim">
-                  {m.active ? "Active" : "Inactive — hidden from workers"}
+                <p className="truncate text-sm text-field-dim">
+                  {m.active ? "Active" : "Inactive"}
                   {m.responsible_operator ? ` · with ${m.responsible_operator}` : ""}
                   {m.do_not_operate ? " · DNO" : ""}
                   {m.eod_missing ? " · Missing EOD" : ""}
@@ -630,9 +633,9 @@ function Machines({ pin, onSaved }: { pin: string; onSaved: () => void }) {
                 Edit
               </button>
             </div>
-          </Card>
-        ),
-      )}
+          ),
+        )}
+      </div>
     </>
   );
 }
