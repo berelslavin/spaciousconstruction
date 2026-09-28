@@ -953,7 +953,12 @@ function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
       return;
     }
     const all = (data ?? []) as Act[];
-    const esc = (v: unknown) => `"${String(v ?? "").replaceAll('"', '""')}"`;
+    const esc = (v: unknown) => {
+      let s = String(v ?? "");
+      // Neutralize spreadsheet formulas (CSV injection)
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+      return `"${s.replaceAll('"', '""')}"`;
+    };
     const csv = [
       "time,machine,machine_name,action,operator,from,to,task,fuel,note,photo",
       ...all.map((r) =>
