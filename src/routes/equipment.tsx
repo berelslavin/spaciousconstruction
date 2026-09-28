@@ -58,7 +58,20 @@ function FieldPage() {
   const [access, setAccess] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [me, setMe] = useState(() =>
+    typeof window === "undefined" ? "" : (localStorage.getItem("sb_operator") ?? ""),
+  );
   const online = useOnline();
+
+  const saveMe = useCallback((name: string) => {
+    setMe(name);
+    try {
+      if (name) localStorage.setItem("sb_operator", name);
+      else localStorage.removeItem("sb_operator");
+    } catch {
+      /* private mode — remembering just won't persist */
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const [mRes, oRes, aRes] = await Promise.all([
