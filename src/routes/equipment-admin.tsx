@@ -1142,8 +1142,10 @@ function Operators({
               </div>
             </div>
           )}
-        </Card>
-      ))}
+            </div>
+          );
+        })}
+      </div>
     </>
   );
 }
