@@ -4,3 +4,9 @@
 - [ ] Verify all required scenarios without production mutations
 
 - [x] Fuel requests: holder requests fuel; admin + fuel runners see it; "Fueled" requires a fuel level
+- [ ] One-tap transfer accept for receiver (verify end-to-end, then publish)
+- [ ] Idea 3: repeat-offender flag in admin "Needs you" (missed EOD counts per operator)
+- [ ] Idea 4: who's-got-what board (machine → holder + since when)
+- [ ] Idea 8: one-tap export of fuel/activity log as spreadsheet
+- [ ] Idea 10: favorites at top of machine picker per phone
+- [ ] Idea 11: rain day switch (pauses fuel dues + EOD expectations)
