@@ -853,7 +853,7 @@ function Checkout({
       : held
         ? `Already checked out to ${machine.responsible_operator}. A handoff needs an admin-approved transfer.`
         : "";
-  const needFuel = machine ? !machine.fuel_logged_today : false;
+  const needFuel = machine ? !machine.fuel_logged_today && !machine.rain_today : false;
   const missing = [
     !operator && "operator",
     !task.trim() && "task/location",
@@ -1263,7 +1263,7 @@ function ReturnEod({
   const locked = machine?.responsible_operator ?? null;
   const redundant = !!machine && !locked && !machine.eod_missing;
   const who = locked ?? operator;
-  const needFuel = machine ? !machine.fuel_logged_today : false;
+  const needFuel = machine ? !machine.fuel_logged_today && !machine.rain_today : false;
   const missing = [
     !who && "operator",
     !photo && "photo",
