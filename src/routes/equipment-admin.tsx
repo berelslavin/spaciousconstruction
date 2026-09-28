@@ -372,7 +372,8 @@ function Attention({
       tab: "transfer",
       tone: "dim",
     },
-  ].filter((r) =>
+  ];
+  const rows = all.filter((r) =>
     r.key === "dno"
       ? dno.length > 0
       : r.key === "issues"
