@@ -182,7 +182,7 @@ function FieldPage() {
           <h1 className="mt-5 text-4xl font-black leading-tight">What are you doing?</h1>
           <div className="mt-5 space-y-3">
             <HomeButton label="Check out machine" hint="Start using a machine" onClick={() => open("checkout")} />
-            <HomeButton label="Transfer machine" hint="Hand over with admin approval" onClick={() => open("transfer")} />
+            <HomeButton label="Transfer machine" hint="Hand over a machine you hold (admin approves first)" onClick={() => open("transfer")} />
             <HomeButton label="Return machine / end-of-day" hint="Park it, take a photo" onClick={() => open("return")} />
             <HomeButton label="Report issue" hint="Damage or defect — stops the machine" onClick={() => open("issue")} danger />
           </div>
