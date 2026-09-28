@@ -113,6 +113,7 @@ export type Database = {
           admin_pin: string
           eod_cutoff: string
           id: number
+          rain_day: string | null
           sheets_connected: boolean
           sheets_url: string | null
           timezone: string
@@ -122,6 +123,7 @@ export type Database = {
           admin_pin?: string
           eod_cutoff?: string
           id: number
+          rain_day?: string | null
           sheets_connected?: boolean
           sheets_url?: string | null
           timezone?: string
@@ -131,6 +133,7 @@ export type Database = {
           admin_pin?: string
           eod_cutoff?: string
           id?: number
+          rain_day?: string | null
           sheets_connected?: boolean
           sheets_url?: string | null
           timezone?: string
@@ -579,6 +582,7 @@ export type Database = {
         Row: {
           code: string | null
           current_task_location: string | null
+          custody_since: string | null
           do_not_operate: boolean | null
           eod_missing: boolean | null
           fuel_level: string | null
@@ -593,6 +597,7 @@ export type Database = {
           needs_fuel: boolean | null
           open_issue: string | null
           open_issue_count: number | null
+          rain_today: boolean | null
           required_eod_date: string | null
           responsible_operator: string | null
           return_location: string | null
@@ -647,6 +652,13 @@ export type Database = {
           to_operator: string
           used_at: string
           valid_date: string
+        }[]
+      }
+      admin_eod_offenders: {
+        Args: { p_pin: string }
+        Returns: {
+          missed: number
+          operator: string
         }[]
       }
       admin_force_return: {
@@ -722,6 +734,10 @@ export type Database = {
           p_operator_id: string
           p_pin: string
         }
+        Returns: Json
+      }
+      admin_set_rain_day: {
+        Args: { p_on: boolean; p_pin: string }
         Returns: Json
       }
       admin_settings: { Args: { p_pin: string }; Returns: Json }
