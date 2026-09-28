@@ -167,6 +167,16 @@ function FieldPage() {
           {loaded && me && (
             <MyMachines machines={machines} me={me} goReturn={openReturn} />
           )}
+          {loaded && me && online && (
+            <PendingTransfers
+              me={me}
+              onAccept={(t) => {
+                setAcceptTarget(t);
+                setFlow("accept");
+                window.scrollTo(0, 0);
+              }}
+            />
+          )}
           {me && runners.includes(me) && <FuelRequests by={me} onChange={load} />}
           <h1 className="mt-5 text-4xl font-black leading-tight">What are you doing?</h1>
           <div className="mt-5 space-y-3">
@@ -231,6 +241,15 @@ function FieldPage() {
           initialCode={returnMachineCode}
           me={me}
           saveMe={saveMe}
+        />
+      )}
+      {flow === "accept" && acceptTarget && (
+        <AcceptTransfer
+          target={acceptTarget}
+          me={me}
+          online={online}
+          onDone={done}
+          onBack={done}
         />
       )}
       {flow === "issue" && (
