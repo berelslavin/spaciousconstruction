@@ -1075,22 +1075,7 @@ function Operators({
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <div>
-                <p className="break-words text-xl font-black">{o.name}</p>
-                <p className="text-sm text-field-dim">
-                  {o.active ? "Active" : "Inactive"}
-                  {o.custody_count > 0
-                    ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}`
-                    : ""}
-                </p>
-                <p className="text-sm font-bold">
-                  Can use:{" "}
-                  {(access[o.name] ?? []).length
-                    ? (access[o.name] ?? []).join(", ")
-                    : "no machines yet"}
-                </p>
-              </div>
+            <div className="space-y-2 pt-1">
               {picking === o.id ? (
                 <div className="space-y-1">
                   {machines.map((m) => (
