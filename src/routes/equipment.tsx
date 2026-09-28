@@ -965,6 +965,8 @@ function ReturnEod({
   onDone,
   onBack,
   initialCode,
+  me,
+  saveMe,
 }: {
   machines: Machine[];
   operators: string[];
@@ -972,9 +974,11 @@ function ReturnEod({
   onDone: () => void;
   onBack: () => void;
   initialCode: string;
+  me: string;
+  saveMe: (name: string) => void;
 }) {
   const [code, setCode] = useState(initialCode);
-  const [operator, setOperator] = useState("");
+  const [operator, setOperator] = useState(() => (operators.includes(me) ? me : ""));
   const [photo, setPhoto] = useState<File | null>(null);
   const [fuel, setFuel] = useState("");
   const [note, setNote] = useState("");
@@ -996,10 +1000,10 @@ function ReturnEod({
   ].filter(Boolean) as string[];
 
   useEffect(() => {
-    setOperator("");
+    setOperator(operators.includes(me) ? me : "");
     setParked(false);
     setFuel("");
-  }, [code]);
+  }, [code, operators, me]);
 
   if (saved) return <Confirmation title="EOD complete" lines={saved} onDone={onDone} />;
 
