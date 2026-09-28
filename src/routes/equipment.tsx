@@ -55,21 +55,24 @@ function FieldPage() {
   const [returnMachineCode, setReturnMachineCode] = useState("");
   const [machines, setMachines] = useState<Machine[]>([]);
   const [operators, setOperators] = useState<string[]>([]);
+  const [access, setAccess] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState("");
   const online = useOnline();
 
   const load = useCallback(async () => {
-    const [mRes, oRes] = await Promise.all([
+    const [mRes, oRes, aRes] = await Promise.all([
       loadMachines(),
       supabase.from("operators").select("name").eq("active", true).order("name"),
+      supabase.rpc("operator_machine_access"),
     ]);
-    if (mRes.error || oRes.error) {
+    if (mRes.error || oRes.error || aRes.error) {
       setLoadError("Could not load machines. Check connection and try again.");
     } else {
       setLoadError("");
       setMachines((mRes.data ?? []) as Machine[]);
       setOperators((oRes.data ?? []).map((o: { name: string }) => o.name));
+      setAccess(new Set((aRes.data ?? []).map((a) => `${a.operator}|${a.machine_code}`)));
     }
     setLoaded(true);
   }, []);
@@ -162,6 +165,7 @@ function FieldPage() {
           onDone={done}
           onBack={done}
           goReturn={openReturn}
+          access={access}
         />
       )}
       {flow === "transfer" && (
@@ -325,11 +329,13 @@ function OperatorPicker({
   value,
   onChange,
   label,
+  isAllowed,
 }: {
   operators: string[];
   value: string;
   onChange: (name: string) => void;
   label: string;
+  isAllowed?: (name: string) => boolean;
 }) {
   return (
     <div className="space-y-3">
@@ -340,11 +346,14 @@ function OperatorPicker({
         className="min-h-[60px] w-full rounded-2xl border-4 border-field-line bg-field-panel px-4 text-2xl font-bold text-field-ink"
       >
         <option value="">Choose a person…</option>
-        {operators.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
+        {operators.map((o) => {
+          const ok = !isAllowed || isAllowed(o);
+          return (
+            <option key={o} value={o} disabled={!ok}>
+              {ok ? o : `🔒 ${o} — not authorized for this machine`}
+            </option>
+          );
+        })}
       </select>
     </div>
   );
@@ -572,6 +581,7 @@ function Checkout({
   onDone,
   onBack,
   goReturn,
+  access,
 }: {
   machines: Machine[];
   operators: string[];
@@ -579,6 +589,7 @@ function Checkout({
   onDone: () => void;
   onBack: () => void;
   goReturn: (code: string) => void;
+  access: Set<string>;
 }) {
   const [code, setCode] = useState("");
   const [operator, setOperator] = useState("");
@@ -590,6 +601,9 @@ function Checkout({
   const [saved, setSaved] = useState<string[] | null>(null);
 
   const machine = useMemo(() => machines.find((m) => m.code === code) ?? null, [machines, code]);
+  useEffect(() => {
+    if (operator && !access.has(`${operator}|${code}`)) setOperator("");
+  }, [code, operator, access]);
   const dno = machine?.status === S_DNO;
   const eodMissing = !!machine?.eod_missing;
   const held = !!machine?.responsible_operator;
@@ -662,7 +676,11 @@ function Checkout({
             value={operator}
             onChange={setOperator}
             label="Responsible operator"
+            isAllowed={(n) => access.has(`${n}|${code}`)}
           />
+          {operators.length > 0 && !operators.some((n) => access.has(`${n}|${code}`)) && (
+            <Alert message="No one is authorized for this machine yet. Ask an admin to add operators for it." />
+          )}
           <TextInput
             label="Task / location"
             value={task}

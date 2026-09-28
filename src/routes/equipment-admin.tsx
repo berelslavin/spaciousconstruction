@@ -280,7 +280,7 @@ function AdminApp({ pin }: { pin: string }) {
         {tab === "live" && <Live machines={machines} pin={pin} />}
         {tab === "machines" && <Machines pin={pin} onSaved={refresh} />}
         {tab === "activity" && <Activity pin={pin} machines={machines} />}
-        {tab === "operators" && <Operators pin={pin} ops={ops} onSaved={refresh} />}
+        {tab === "operators" && <Operators pin={pin} ops={ops} machines={machines} onSaved={refresh} />}
         {tab === "transfer" && (
           <Transfers pin={pin} machines={machines} operators={activeOps} onSaved={refresh} />
         )}
@@ -798,7 +798,46 @@ function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
 
 /* ---------------- Operators ---------------- */
 
-function Operators({ pin, ops, onSaved }: { pin: string; ops: Op[]; onSaved: () => void }) {
+function Operators({
+  pin,
+  ops,
+  machines,
+  onSaved,
+}: {
+  pin: string;
+  ops: Op[];
+  machines: Machine[];
+  onSaved: () => void;
+}) {
+  const [access, setAccess] = useState<Record<string, string[]>>({});
+  const [picking, setPicking] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
+  const loadAccess = useCallback(async () => {
+    const { data } = await supabase.rpc("operator_machine_access");
+    const map: Record<string, string[]> = {};
+    for (const a of data ?? []) (map[a.operator] ??= []).push(a.machine_code);
+    setAccess(map);
+  }, []);
+  useEffect(() => {
+    void loadAccess();
+  }, [loadAccess, ops]);
+  const saveAccess = async (o: Op) => {
+    setBusy(true);
+    setErr("");
+    setOk("");
+    const { error } = await supabase.rpc("admin_set_operator_machines", {
+      p_pin: pin,
+      p_operator_id: o.id,
+      p_machine_codes: picked,
+    });
+    setBusy(false);
+    if (error) setErr(rpcError(error));
+    else {
+      setOk(`Machines saved for ${o.name}.`);
+      setPicking(null);
+      void loadAccess();
+    }
+  };
   const [newName, setNewName] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -882,7 +921,56 @@ function Operators({ pin, ops, onSaved }: { pin: string; ops: Op[]; onSaved: () 
                     ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}`
                     : ""}
                 </p>
+                <p className="text-sm font-bold">
+                  Can use:{" "}
+                  {(access[o.name] ?? []).length
+                    ? (access[o.name] ?? []).join(", ")
+                    : "no machines yet"}
+                </p>
               </div>
+              {picking === o.id ? (
+                <div className="space-y-1">
+                  {machines.map((m) => (
+                    <label key={m.code} className="flex min-h-11 items-center gap-3 text-base font-bold">
+                      <input
+                        type="checkbox"
+                        className="h-6 w-6"
+                        checked={picked.includes(m.code)}
+                        onChange={(e) =>
+                          setPicked((p) =>
+                            e.target.checked ? [...p, m.code] : p.filter((c) => c !== m.code),
+                          )
+                        }
+                      />
+                      {m.code} {m.name}
+                    </label>
+                  ))}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className={`${primaryBtn} flex-1`}
+                      disabled={busy}
+                      onClick={() => saveAccess(o)}
+                    >
+                      Save machines
+                    </button>
+                    <button type="button" className={ghostBtn} onClick={() => setPicking(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className={`${ghostBtn} w-full`}
+                  onClick={() => {
+                    setPicking(o.id);
+                    setPicked(access[o.name] ?? []);
+                  }}
+                >
+                  Choose machines
+                </button>
+              )}
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"

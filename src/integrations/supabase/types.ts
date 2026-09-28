@@ -362,6 +362,46 @@ export type Database = {
           },
         ]
       }
+      operator_machines: {
+        Row: {
+          created_at: string
+          machine_id: string
+          operator_id: string
+        }
+        Insert: {
+          created_at?: string
+          machine_id: string
+          operator_id: string
+        }
+        Update: {
+          created_at?: string
+          machine_id?: string
+          operator_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_machines_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machine_dashboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operator_machines_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operator_machines_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operators: {
         Row: {
           active: boolean
@@ -606,6 +646,14 @@ export type Database = {
         Args: { p_active: boolean; p_id: string; p_name: string; p_pin: string }
         Returns: Json
       }
+      admin_set_operator_machines: {
+        Args: {
+          p_machine_codes: string[]
+          p_operator_id: string
+          p_pin: string
+        }
+        Returns: Json
+      }
       admin_settings: { Args: { p_pin: string }; Returns: Json }
       check_in_crew: {
         Args: { p_contractor_id: string }
@@ -667,6 +715,17 @@ export type Database = {
         Args: { p_machine_code: string }
         Returns: {
           to_operator: string
+        }[]
+      }
+      operator_can_use: {
+        Args: { p_machine_id: string; p_operator_id: string }
+        Returns: boolean
+      }
+      operator_machine_access: {
+        Args: never
+        Returns: {
+          machine_code: string
+          operator: string
         }[]
       }
       report_machine_issue: {
