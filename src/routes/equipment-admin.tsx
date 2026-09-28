@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 // Admin home = "Needs you" tab; Machines/Operators use compact rows with expandable manage panels.
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { FuelRequests } from "@/components/FuelRequests";
 import {
   S_DNO,
   S_EOD,
@@ -395,6 +396,7 @@ function Attention({
   return (
     <>
       <H2>Needs you</H2>
+      <FuelRequests by="Admin" pin={pin} />
       <p className="text-sm text-field-dim">
         {out.length} machine{out.length === 1 ? "" : "s"} checked out right now.
       </p>
@@ -950,13 +952,18 @@ function Operators({
   onSaved: () => void;
 }) {
   const [access, setAccess] = useState<Record<string, string[]>>({});
+  const [runners, setRunners] = useState<string[]>([]);
   const [picking, setPicking] = useState<string | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const loadAccess = useCallback(async () => {
-    const { data } = await supabase.rpc("operator_machine_access");
+    const [{ data }, { data: r }] = await Promise.all([
+      supabase.rpc("operator_machine_access"),
+      supabase.rpc("fuel_runners"),
+    ]);
     const map: Record<string, string[]> = {};
     for (const a of data ?? []) (map[a.operator] ??= []).push(a.machine_code);
     setAccess(map);
+    setRunners((r ?? []).map((x: { name: string }) => x.name));
   }, []);
   useEffect(() => {
     void loadAccess();
@@ -1041,6 +1048,7 @@ function Operators({
                     {o.custody_count > 0
                       ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}`
                       : ""}
+                    {runners.includes(o.name) ? " · ⛽ fuel runner" : ""}
                     {" · "}
                     {(access[o.name] ?? []).length
                       ? (access[o.name] ?? []).join(", ")
@@ -1122,6 +1130,28 @@ function Operators({
                   Choose machines
                 </button>
               )}
+              <button
+                type="button"
+                className={`${ghostBtn} w-full`}
+                disabled={busy}
+                onClick={async () => {
+                  const on = !runners.includes(o.name);
+                  setBusy(true);
+                  const { error } = await supabase.rpc("admin_set_fuel_runner", {
+                    p_pin: pin,
+                    p_operator_id: o.id,
+                    p_on: on,
+                  });
+                  setBusy(false);
+                  if (error) setErr(rpcError(error));
+                  else {
+                    setOk(on ? `${o.name} will see fuel requests.` : `${o.name} no longer sees fuel requests.`);
+                    void loadAccess();
+                  }
+                }}
+              >
+                {runners.includes(o.name) ? "⛽ Fuel runner — tap to remove" : "⛽ Make fuel runner"}
+              </button>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
