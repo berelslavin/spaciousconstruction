@@ -726,13 +726,15 @@ function Checkout({
     });
     setBusy(false);
     if (e) setError(rpcError(e));
-    else
+    else {
+      saveMe(operator);
       setSaved([
         `${code} ${machine?.name ?? ""}`,
         `Responsible: ${operator}`,
         `Task: ${task.trim()}`,
         "You own it until return or approved transfer.",
       ]);
+    }
   };
 
   return (
