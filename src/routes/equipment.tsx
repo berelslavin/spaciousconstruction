@@ -1022,6 +1022,7 @@ function ReturnEod({
         ...(note.trim() ? { p_note: note.trim() } : {}),
       });
       if (e) throw new Error(rpcError(e));
+      saveMe(who);
       const eod = (data as { eod_date?: string } | null)?.eod_date ?? todayChicago();
       setSaved([
         `${machine.code} ${machine.name ?? ""}`,
