@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 // me/saveMe: this phone remembers the last operator (localStorage sb_operator) to pre-fill pickers.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { FuelRequests } from "@/components/FuelRequests";
 import {
   FUEL,
   S_DNO,
@@ -57,6 +58,7 @@ function FieldPage() {
   const [machines, setMachines] = useState<Machine[]>([]);
   const [operators, setOperators] = useState<string[]>([]);
   const [access, setAccess] = useState<Set<string>>(new Set());
+  const [runners, setRunners] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [me, setMe] = useState(() =>
@@ -75,10 +77,11 @@ function FieldPage() {
   }, []);
 
   const load = useCallback(async () => {
-    const [mRes, oRes, aRes] = await Promise.all([
+    const [mRes, oRes, aRes, rRes] = await Promise.all([
       loadMachines(),
       supabase.from("operators").select("name").eq("active", true).order("name"),
       supabase.rpc("operator_machine_access"),
+      supabase.rpc("fuel_runners"),
     ]);
     if (mRes.error || oRes.error || aRes.error) {
       setLoadError("Could not load machines. Check connection and try again.");
@@ -87,6 +90,7 @@ function FieldPage() {
       setMachines((mRes.data ?? []) as Machine[]);
       setOperators((oRes.data ?? []).map((o: { name: string }) => o.name));
       setAccess(new Set((aRes.data ?? []).map((a) => `${a.operator}|${a.machine_code}`)));
+      setRunners((rRes.data ?? []).map((r: { name: string }) => r.name));
     }
     setLoaded(true);
   }, []);
@@ -155,6 +159,7 @@ function FieldPage() {
           {loaded && me && (
             <MyMachines machines={machines} me={me} goReturn={openReturn} />
           )}
+          {me && runners.includes(me) && <FuelRequests by={me} onChange={load} />}
           <h1 className="mt-5 text-4xl font-black leading-tight">What are you doing?</h1>
           <div className="mt-5 space-y-3">
             <HomeButton label="Check out machine" hint="Start using a machine" onClick={() => open("checkout")} />
@@ -309,10 +314,45 @@ function MyMachines({
                 Return / end-of-day now
               </button>
             )}
+            <RequestFuel code={m.code} me={me} />
           </div>
         );
       })}
     </div>
+  );
+}
+
+function RequestFuel({ code, me }: { code: string; me: string }) {
+  const [state, setState] = useState<"idle" | "busy" | "sent" | string>("idle");
+  const send = async () => {
+    setState("busy");
+    const { data, error } = await supabase.rpc("request_fuel", {
+      p_machine_code: code,
+      p_operator_name: me,
+    });
+    if (error) setState(rpcError(error));
+    else setState((data as { already?: boolean })?.already ? "already" : "sent");
+  };
+  if (state === "sent" || state === "already")
+    return (
+      <p className="mt-3 text-lg font-black text-field-go">
+        ⛽ Fuel {state === "already" ? "already requested" : "requested"} — help is on the way.
+      </p>
+    );
+  return (
+    <>
+      <button
+        type="button"
+        disabled={state === "busy"}
+        onClick={send}
+        className="mt-3 min-h-[56px] w-full rounded-2xl border-4 border-field-accent text-xl font-black"
+      >
+        ⛽ Request fuel
+      </button>
+      {state !== "idle" && state !== "busy" && (
+        <p className="mt-1 font-bold text-field-stop">{state}</p>
+      )}
+    </>
   );
 }
 
