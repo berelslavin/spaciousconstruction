@@ -938,9 +938,61 @@ function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
     };
   }, [pin, code, type, today]);
 
+  const [exporting, setExporting] = useState(false);
+  const exportCsv = async () => {
+    setExporting(true);
+    const { data, error } = await supabase.rpc("admin_activity", {
+      p_pin: pin,
+      p_machine_code: "",
+      p_type: "",
+      p_today_only: false,
+    });
+    setExporting(false);
+    if (error) {
+      setErr(rpcError(error));
+      return;
+    }
+    const all = (data ?? []) as Act[];
+    const esc = (v: unknown) => `"${String(v ?? "").replaceAll('"', '""')}"`;
+    const csv = [
+      "time,machine,machine_name,action,operator,from,to,task,fuel,note,photo",
+      ...all.map((r) =>
+        [
+          r.created_at,
+          r.machine_code,
+          r.machine_name,
+          r.type,
+          r.operator,
+          r.from_operator,
+          r.to_operator,
+          r.task_location,
+          r.fuel_level,
+          r.note,
+          r.photo_url,
+        ]
+          .map(esc)
+          .join(","),
+      ),
+    ].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `machine-activity-${todayChicago()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <H2>Activity log</H2>
+      <button
+        type="button"
+        onClick={exportCsv}
+        disabled={exporting}
+        className="min-h-[56px] w-full rounded-2xl border-2 border-field-accent text-lg font-black"
+      >
+        {exporting ? "Preparing…" : "⬇ Export full log as spreadsheet (CSV)"}
+      </button>
       <div className="grid grid-cols-2 gap-2">
         <select
           className={inputCls}
