@@ -57,6 +57,7 @@ function FieldPage() {
   const [machines, setMachines] = useState<Machine[]>([]);
   const [operators, setOperators] = useState<string[]>([]);
   const [access, setAccess] = useState<Set<string>>(new Set());
+  const [runners, setRunners] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [me, setMe] = useState(() =>
@@ -75,10 +76,11 @@ function FieldPage() {
   }, []);
 
   const load = useCallback(async () => {
-    const [mRes, oRes, aRes] = await Promise.all([
+    const [mRes, oRes, aRes, rRes] = await Promise.all([
       loadMachines(),
       supabase.from("operators").select("name").eq("active", true).order("name"),
       supabase.rpc("operator_machine_access"),
+      supabase.rpc("fuel_runners"),
     ]);
     if (mRes.error || oRes.error || aRes.error) {
       setLoadError("Could not load machines. Check connection and try again.");
@@ -87,6 +89,7 @@ function FieldPage() {
       setMachines((mRes.data ?? []) as Machine[]);
       setOperators((oRes.data ?? []).map((o: { name: string }) => o.name));
       setAccess(new Set((aRes.data ?? []).map((a) => `${a.operator}|${a.machine_code}`)));
+      setRunners((rRes.data ?? []).map((r: { name: string }) => r.name));
     }
     setLoaded(true);
   }, []);
@@ -155,6 +158,7 @@ function FieldPage() {
           {loaded && me && (
             <MyMachines machines={machines} me={me} goReturn={openReturn} />
           )}
+          {me && runners.includes(me) && <FuelRequests by={me} onChange={load} />}
           <h1 className="mt-5 text-4xl font-black leading-tight">What are you doing?</h1>
           <div className="mt-5 space-y-3">
             <HomeButton label="Check out machine" hint="Start using a machine" onClick={() => open("checkout")} />
@@ -348,19 +352,6 @@ function RequestFuel({ code, me }: { code: string; me: string }) {
         <p className="mt-1 font-bold text-field-stop">{state}</p>
       )}
     </>
-  );
-}
-
-function _unusedEnd() {
-  return (
-    <div>
-      {[0].map(() => {
-        return (
-          <div>
-          </div>
-        );
-      })}
-    </div>
   );
 }
 
