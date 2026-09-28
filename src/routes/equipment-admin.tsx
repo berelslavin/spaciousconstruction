@@ -1077,16 +1077,21 @@ function Operators({
   const [runners, setRunners] = useState<string[]>([]);
   const [picking, setPicking] = useState<string | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
+  const [codes, setCodes] = useState<Record<string, string>>({});
   const loadAccess = useCallback(async () => {
-    const [{ data }, { data: r }] = await Promise.all([
+    const [{ data }, { data: r }, { data: c }] = await Promise.all([
       supabase.rpc("operator_machine_access"),
       supabase.rpc("fuel_runners"),
+      supabase.rpc("admin_operator_pins", { p_pin: pin }),
     ]);
     const map: Record<string, string[]> = {};
     for (const a of data ?? []) (map[a.operator] ??= []).push(a.machine_code);
     setAccess(map);
     setRunners((r ?? []).map((x: { name: string }) => x.name));
-  }, []);
+    const cm: Record<string, string> = {};
+    for (const x of c ?? []) cm[x.operator_id] = x.pin;
+    setCodes(cm);
+  }, [pin]);
   useEffect(() => {
     void loadAccess();
   }, [loadAccess, ops]);
@@ -1167,6 +1172,8 @@ function Operators({
                   <p className="truncate text-lg font-black leading-tight">{o.name}</p>
                   <p className="truncate text-sm text-field-dim">
                     {o.active ? "Active" : "Inactive"}
+                    {" · 🔑 "}
+                    {codes[o.id] ?? "no code"}
                     {o.custody_count > 0
                       ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}`
                       : ""}
@@ -1252,6 +1259,31 @@ function Operators({
                   Choose machines
                 </button>
               )}
+              <button
+                type="button"
+                className={`${ghostBtn} w-full`}
+                disabled={busy}
+                onClick={async () => {
+                  const next = prompt(`New 4-digit code for ${o.name}`, "");
+                  if (next === null) return;
+                  setBusy(true);
+                  setErr("");
+                  setOk("");
+                  const { error } = await supabase.rpc("admin_set_operator_pin", {
+                    p_pin: pin,
+                    p_operator_id: o.id,
+                    p_new_pin: next.trim(),
+                  });
+                  setBusy(false);
+                  if (error) setErr(rpcError(error));
+                  else {
+                    setOk(`Code saved for ${o.name}.`);
+                    void loadAccess();
+                  }
+                }}
+              >
+                🔑 Set code
+              </button>
               <button
                 type="button"
                 className={`${ghostBtn} w-full`}

@@ -12,6 +12,7 @@
 - [x] Idea 11: rain day switch (admin toggle pauses fuel dues + EOD expectations; worker banner)
 - [x] EOD cutoff changed to 7:00 PM Chicago
 - [ ] Publish preview to live site (accept-transfer, fuel requests, ideas 3/4/8/10/11 all pending)
+- [x] Per-operator 4-digit code required on every checkout and transfer take-over
 - [ ] Narrow operator-machine access per person (currently everyone can use all 6)
 - [ ] Assign fuel runners (none selected yet)
 - [ ] Admin design pass: Activity/Transfers/Issues tabs still card-based

@@ -106,6 +106,13 @@
       "when": 1790564533166,
       "tag": "0014_eod_missing_evening_checkout",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1790565680563,
+      "tag": "0015_operator_pins",
+      "breakpoints": true
     }
   ]
 }

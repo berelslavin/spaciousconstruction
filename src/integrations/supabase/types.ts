@@ -460,6 +460,32 @@ export type Database = {
           },
         ]
       }
+      operator_pins: {
+        Row: {
+          operator_id: string
+          pin: string
+          updated_at: string
+        }
+        Insert: {
+          operator_id: string
+          pin: string
+          updated_at?: string
+        }
+        Update: {
+          operator_id?: string
+          pin?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_pins_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: true
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operators: {
         Row: {
           active: boolean
@@ -607,11 +633,16 @@ export type Database = {
       }
     }
     Functions: {
+      _eq_check_operator_pin: {
+        Args: { p_operator_id: string; p_pin: string }
+        Returns: undefined
+      }
       _eq_require_pin: { Args: { p_pin: string }; Returns: undefined }
       accept_transfer: {
         Args: {
           p_machine_code: string
           p_operator_name: string
+          p_operator_pin?: string
           p_task_location: string
         }
         Returns: Json
@@ -700,6 +731,13 @@ export type Database = {
           return_location: string
         }[]
       }
+      admin_operator_pins: {
+        Args: { p_pin: string }
+        Returns: {
+          operator_id: string
+          pin: string
+        }[]
+      }
       admin_operators: {
         Args: { p_pin: string }
         Returns: {
@@ -736,6 +774,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_operator_pin: {
+        Args: { p_new_pin: string; p_operator_id: string; p_pin: string }
+        Returns: Json
+      }
       admin_set_rain_day: {
         Args: { p_on: boolean; p_pin: string }
         Returns: Json
@@ -761,6 +803,7 @@ export type Database = {
           p_fuel_level?: string
           p_machine_code: string
           p_operator_name: string
+          p_operator_pin?: string
           p_safe_confirmed: boolean
           p_task_location: string
         }
@@ -889,6 +932,10 @@ export type Database = {
         Returns: Json
       }
       verify_admin_pin: { Args: { p_pin: string }; Returns: boolean }
+      verify_operator_pin: {
+        Args: { p_operator_name: string; p_pin: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
