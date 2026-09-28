@@ -165,6 +165,7 @@ function FieldPage() {
           onDone={done}
           onBack={done}
           goReturn={openReturn}
+          access={access}
         />
       )}
       {flow === "transfer" && (
