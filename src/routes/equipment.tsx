@@ -1516,3 +1516,29 @@ function ReportIssue({
     </Shell>
   );
 }
+
+function PinInput({
+  name,
+  value,
+  onChange,
+}: {
+  name: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-lg font-black">{name}'s 4-digit code</span>
+      <input
+        type="password"
+        inputMode="numeric"
+        autoComplete="off"
+        maxLength={4}
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
+        placeholder="••••"
+        className="min-h-[64px] w-full rounded-2xl border-2 border-field-line bg-field-panel px-4 text-center text-3xl font-black tracking-[0.5em] text-field-ink"
+      />
+    </label>
+  );
+}
