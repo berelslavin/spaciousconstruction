@@ -47,7 +47,14 @@ export const Route = createFileRoute("/equipment")({
   component: FieldPage,
 });
 
-type Flow = "checkout" | "transfer" | "return" | "issue";
+type Flow = "checkout" | "transfer" | "return" | "issue" | "accept";
+
+type PendingTransfer = {
+  machine_code: string;
+  machine_name: string;
+  from_operator: string;
+  authorized_by: string;
+};
 
 const SAFETY_TEXT =
   "This machine is clearly the right and safe option for this task. If the risk is too high for the benefit, we use human labor instead.";
@@ -55,6 +62,7 @@ const SAFETY_TEXT =
 function FieldPage() {
   const [flow, setFlow] = useState<Flow | null>(null);
   const [returnMachineCode, setReturnMachineCode] = useState("");
+  const [acceptTarget, setAcceptTarget] = useState<PendingTransfer | null>(null);
   const [machines, setMachines] = useState<Machine[]>([]);
   const [operators, setOperators] = useState<string[]>([]);
   const [access, setAccess] = useState<Set<string>>(new Set());
