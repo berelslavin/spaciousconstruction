@@ -47,7 +47,14 @@ export const Route = createFileRoute("/equipment")({
   component: FieldPage,
 });
 
-type Flow = "checkout" | "transfer" | "return" | "issue";
+type Flow = "checkout" | "transfer" | "return" | "issue" | "accept";
+
+type PendingTransfer = {
+  machine_code: string;
+  machine_name: string;
+  from_operator: string;
+  authorized_by: string;
+};
 
 const SAFETY_TEXT =
   "This machine is clearly the right and safe option for this task. If the risk is too high for the benefit, we use human labor instead.";
@@ -55,6 +62,7 @@ const SAFETY_TEXT =
 function FieldPage() {
   const [flow, setFlow] = useState<Flow | null>(null);
   const [returnMachineCode, setReturnMachineCode] = useState("");
+  const [acceptTarget, setAcceptTarget] = useState<PendingTransfer | null>(null);
   const [machines, setMachines] = useState<Machine[]>([]);
   const [operators, setOperators] = useState<string[]>([]);
   const [access, setAccess] = useState<Set<string>>(new Set());
@@ -109,6 +117,7 @@ function FieldPage() {
   const done = () => {
     setFlow(null);
     setReturnMachineCode("");
+    setAcceptTarget(null);
     window.scrollTo(0, 0);
     void load();
   };
@@ -159,11 +168,21 @@ function FieldPage() {
           {loaded && me && (
             <MyMachines machines={machines} me={me} goReturn={openReturn} />
           )}
+          {loaded && me && online && (
+            <PendingTransfers
+              me={me}
+              onAccept={(t) => {
+                setAcceptTarget(t);
+                setFlow("accept");
+                window.scrollTo(0, 0);
+              }}
+            />
+          )}
           {me && runners.includes(me) && <FuelRequests by={me} onChange={load} />}
           <h1 className="mt-5 text-4xl font-black leading-tight">What are you doing?</h1>
           <div className="mt-5 space-y-3">
             <HomeButton label="Check out machine" hint="Start using a machine" onClick={() => open("checkout")} />
-            <HomeButton label="Transfer machine" hint="Hand over with admin approval" onClick={() => open("transfer")} />
+            <HomeButton label="Transfer machine" hint="Hand over a machine you hold (admin approves first)" onClick={() => open("transfer")} />
             <HomeButton label="Return machine / end-of-day" hint="Park it, take a photo" onClick={() => open("return")} />
             <HomeButton label="Report issue" hint="Damage or defect — stops the machine" onClick={() => open("issue")} danger />
           </div>
@@ -223,6 +242,15 @@ function FieldPage() {
           initialCode={returnMachineCode}
           me={me}
           saveMe={saveMe}
+        />
+      )}
+      {flow === "accept" && acceptTarget && (
+        <AcceptTransfer
+          target={acceptTarget}
+          me={me}
+          online={online}
+          onDone={done}
+          onBack={done}
         />
       )}
       {flow === "issue" && (
@@ -992,6 +1020,129 @@ function Transfer({
           {!statusBlocked && dests && dests.length === 0 && <Alert message={error} />}
         </>
       )}
+    </Shell>
+  );
+}
+
+/* ---------------- Accept transfer (receiver side, one tap) ---------------- */
+
+function PendingTransfers({
+  me,
+  onAccept,
+}: {
+  me: string;
+  onAccept: (t: PendingTransfer) => void;
+}) {
+  const [items, setItems] = useState<PendingTransfer[]>([]);
+
+  const load = useCallback(async () => {
+    const { data } = await supabase.rpc("my_pending_transfers", { p_operator_name: me });
+    setItems((data ?? []) as PendingTransfer[]);
+  }, [me]);
+
+  useEffect(() => {
+    void load();
+    const t = setInterval(() => void load(), 20000);
+    const onFocus = () => void load();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [load]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="mt-4 space-y-3">
+      {items.map((t) => (
+        <button
+          key={t.machine_code}
+          type="button"
+          onClick={() => onAccept(t)}
+          className="min-h-[80px] w-full rounded-2xl border-4 border-field-accent bg-field-panel px-4 py-3 text-left active:scale-[0.99]"
+        >
+          <span className="block text-xl font-black">
+            Approved for you: {t.machine_code} {t.machine_name}
+          </span>
+          <span className="block text-base font-bold text-field-dim">
+            From {t.from_operator} · approved by {t.authorized_by} — tap to take it
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function AcceptTransfer({
+  target,
+  me,
+  online,
+  onDone,
+  onBack,
+}: {
+  target: PendingTransfer;
+  me: string;
+  online: boolean;
+  onDone: () => void;
+  onBack: () => void;
+}) {
+  const [task, setTask] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState<string[] | null>(null);
+
+  if (saved) return <Confirmation title="It's yours now" lines={saved} onDone={onDone} />;
+
+  const submit = async () => {
+    setBusy(true);
+    setError("");
+    const { error: e } = await supabase.rpc("accept_transfer", {
+      p_machine_code: target.machine_code,
+      p_operator_name: me,
+      p_task_location: task.trim(),
+    });
+    setBusy(false);
+    if (e) setError(rpcError(e));
+    else
+      setSaved([
+        `${target.machine_code} ${target.machine_name}`,
+        `You are responsible for it now, ${me}.`,
+        `Task: ${task.trim()}`,
+        "You own it until return or approved transfer.",
+      ]);
+  };
+
+  const missing = [!task.trim() && "task/location"].filter(Boolean) as string[];
+
+  return (
+    <Shell title="Take over machine" onBack={onBack}>
+      <Info
+        label="Machine"
+        value={`${target.machine_code} ${target.machine_name}`}
+        big
+      />
+      <Info label="Coming from" value={target.from_operator} />
+      <p className="rounded-xl bg-field-panel p-3 text-base font-bold text-field-dim">
+        Approved by {target.authorized_by} · valid today only · one use. By taking it,
+        you become responsible for it until you return it or an admin approves another
+        transfer.
+      </p>
+      <TextInput
+        label="Task / location"
+        value={task}
+        onChange={setTask}
+        placeholder="e.g. Grading, House 12"
+      />
+      <Alert message={error} />
+      <Missing items={missing} />
+      <Submit
+        disabled={missing.length > 0}
+        busy={busy}
+        online={online}
+        label="Take it — I'm responsible now"
+        onClick={submit}
+      />
     </Shell>
   );
 }
