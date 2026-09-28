@@ -21,6 +21,8 @@ export type Machine = {
   open_issue_count: number | null;
   needs_fuel: boolean | null;
   do_not_operate: boolean | null;
+  custody_since: string | null;
+  rain_today: boolean | null;
 };
 
 export const FUEL = ["Full", "¾", "½", "¼", "Needs Fuel"] as const;
