@@ -57,6 +57,13 @@
       "when": 1790556716994,
       "tag": "0007_photo_upload_policy_use_dashboard",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790556734950,
+      "tag": "0008_photo_upload_policy_fix_name",
+      "breakpoints": true
     }
   ]
 }
