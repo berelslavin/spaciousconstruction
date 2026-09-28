@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -243,7 +243,12 @@ function AdminApp({ pin }: { pin: string }) {
         style={{ paddingTop: "max(env(safe-area-inset-top), 0.75rem)" }}
       >
         <div className="flex items-center justify-between gap-2">
-          <h1 className="text-2xl font-black">Machine Admin</h1>
+          <div className="flex items-baseline gap-3">
+            <h1 className="text-2xl font-black">Machine Admin</h1>
+            <Link to="/today" className="text-sm font-bold text-field-dim underline underline-offset-4">
+              Schedule &amp; more
+            </Link>
+          </div>
           <span className="flex items-center gap-2 text-sm font-bold">
             <span
               className={`h-3 w-3 rounded-full ${online && !loadErr ? "bg-field-go" : "bg-field-stop"}`}
