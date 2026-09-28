@@ -117,7 +117,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 const TABS = [
-  { to: "/", label: "Today" },
+  { to: "/today", label: "Today" },
   { to: "/houses", label: "Houses" },
   { to: "/crews", label: "Crews" },
   { to: "/punch", label: "Punch" },
@@ -132,7 +132,7 @@ function BottomNav() {
           <Link
             key={t.to}
             to={t.to}
-            activeOptions={{ exact: t.to === "/" }}
+            activeOptions={{ exact: true }}
             activeProps={{ className: "text-primary font-bold" }}
             inactiveProps={{ className: "text-muted-foreground" }}
             className="flex-1 py-3 text-center text-[13px] font-display uppercase tracking-wide"
