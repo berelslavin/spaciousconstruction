@@ -151,6 +151,9 @@ function FieldPage() {
 
       {flow === null && (
         <>
+          {loaded && me && (
+            <MyMachines machines={machines} me={me} goReturn={openReturn} />
+          )}
           <h1 className="mt-5 text-4xl font-black leading-tight">What are you doing?</h1>
           <div className="mt-5 space-y-3">
             <HomeButton label="Check out machine" hint="Start using a machine" onClick={() => open("checkout")} />
@@ -158,7 +161,19 @@ function FieldPage() {
             <HomeButton label="Return machine / end-of-day" hint="Park it, take a photo" onClick={() => open("return")} />
             <HomeButton label="Report issue" hint="Damage or defect — stops the machine" onClick={() => open("issue")} danger />
           </div>
-          <div className="mt-8 text-center">
+          {me && (
+            <p className="mt-5 text-center text-base font-bold text-field-dim">
+              This phone is {me}.{" "}
+              <button
+                type="button"
+                onClick={() => saveMe("")}
+                className="inline-flex min-h-11 items-center px-2 underline underline-offset-4"
+              >
+                Not you?
+              </button>
+            </p>
+          )}
+          <div className="mt-4 text-center">
             <Link
               to="/equipment-admin"
               className="inline-flex min-h-11 items-center px-3 text-sm font-bold text-field-dim underline underline-offset-4"
@@ -179,6 +194,8 @@ function FieldPage() {
           onBack={done}
           goReturn={openReturn}
           access={access}
+          me={me}
+          saveMe={saveMe}
         />
       )}
       {flow === "transfer" && (
@@ -198,6 +215,8 @@ function FieldPage() {
           onDone={done}
           onBack={done}
           initialCode={returnMachineCode}
+          me={me}
+          saveMe={saveMe}
         />
       )}
       {flow === "issue" && (
@@ -207,6 +226,8 @@ function FieldPage() {
           online={online}
           onDone={done}
           onBack={done}
+          me={me}
+          saveMe={saveMe}
         />
       )}
     </div>
