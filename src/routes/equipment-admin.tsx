@@ -292,6 +292,138 @@ function AdminApp({ pin }: { pin: string }) {
   );
 }
 
+/* ---------------- Needs you (admin home) ---------------- */
+
+function Attention({
+  machines,
+  pin,
+  go,
+}: {
+  machines: Machine[];
+  pin: string;
+  go: (t: Tab) => void;
+}) {
+  const [openIssues, setOpenIssues] = useState<number | null>(null);
+  const [pendingAuths, setPendingAuths] = useState<number | null>(null);
+
+  useEffect(() => {
+    void supabase
+      .rpc("admin_issues", { p_pin: pin })
+      .then(({ data }) =>
+        setOpenIssues(
+          ((data ?? []) as { status: string }[]).filter((i) => i.status === "open").length,
+        ),
+      );
+    void supabase
+      .rpc("admin_authorizations", { p_pin: pin })
+      .then(({ data }) =>
+        setPendingAuths(
+          ((data ?? []) as { state: string }[]).filter((a) => a.state === "valid").length,
+        ),
+      );
+  }, [pin]);
+
+  const dno = machines.filter((m) => m.do_not_operate);
+  const eod = machines.filter((m) => m.eod_missing);
+  const fuel = machines.filter((m) => m.fuel_level === "Needs Fuel");
+  const out = machines.filter((m) => !!m.responsible_operator);
+
+  const rows: {
+    key: string;
+    title: string;
+    detail: string;
+    tab: Tab;
+    tone: "stop" | "eod" | "accent" | "dim";
+  }[] = [
+    {
+      key: "dno",
+      title: `${dno.length} Do Not Operate`,
+      detail: dno.map((m) => m.code).join(", "),
+      tab: "issues",
+      tone: "stop",
+    },
+    {
+      key: "issues",
+      title: `${openIssues ?? "…"} open issue${openIssues === 1 ? "" : "s"}`,
+      detail: "Reported by workers — clear them to return machines to service",
+      tab: "issues",
+      tone: "stop",
+    },
+    {
+      key: "eod",
+      title: `${eod.length} missing end-of-day`,
+      detail: eod.map((m) => `${m.code}${m.responsible_operator ? ` (${m.responsible_operator})` : ""}`).join(", "),
+      tab: "machines",
+      tone: "eod",
+    },
+    {
+      key: "fuel",
+      title: `${fuel.length} need${fuel.length === 1 ? "s" : ""} fuel`,
+      detail: fuel.map((m) => m.code).join(", "),
+      tab: "live",
+      tone: "accent",
+    },
+    {
+      key: "auths",
+      title: `${pendingAuths ?? "…"} transfer approval${pendingAuths === 1 ? "" : "s"} waiting to be used`,
+      detail: "Valid today only",
+      tab: "transfer",
+      tone: "dim",
+    },
+  ].filter((r) =>
+    r.key === "dno"
+      ? dno.length > 0
+      : r.key === "issues"
+        ? (openIssues ?? 0) > 0
+        : r.key === "eod"
+          ? eod.length > 0
+          : r.key === "fuel"
+            ? fuel.length > 0
+            : (pendingAuths ?? 0) > 0,
+  );
+
+  const toneCls = {
+    stop: "border-field-stop",
+    eod: "border-field-eod",
+    accent: "border-field-accent",
+    dim: "border-field-line",
+  };
+
+  return (
+    <>
+      <H2>Needs you</H2>
+      <p className="text-sm text-field-dim">
+        {out.length} machine{out.length === 1 ? "" : "s"} checked out right now.
+      </p>
+      {rows.length === 0 && (
+        <p className="rounded-2xl bg-field-go p-4 text-lg font-black text-field-accent-ink">
+          All clear — nothing needs you right now.
+        </p>
+      )}
+      <div className="divide-y divide-field-line overflow-hidden rounded-2xl border-2 border-field-line">
+        {rows.map((r) => (
+          <button
+            key={r.key}
+            type="button"
+            onClick={() => go(r.tab)}
+            className={`flex min-h-[56px] w-full items-center gap-3 border-l-8 px-3 py-2 text-left active:bg-field-panel ${toneCls[r.tone]}`}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-lg font-black leading-tight">{r.title}</span>
+              {r.detail && (
+                <span className="block truncate text-sm font-bold text-field-dim">{r.detail}</span>
+              )}
+            </span>
+            <span aria-hidden className="text-2xl font-black opacity-60">
+              ›
+            </span>
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
 /* ---------------- Live ---------------- */
 
 type LiveFilter = "all" | "out" | "eod" | "dno" | "fuel" | "due";
