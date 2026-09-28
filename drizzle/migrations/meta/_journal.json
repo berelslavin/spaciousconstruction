@@ -43,6 +43,13 @@
       "when": 1790259215528,
       "tag": "0005_crew_checkins",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790556706559,
+      "tag": "0006_tighten_equipment_security",
+      "breakpoints": true
     }
   ]
 }
