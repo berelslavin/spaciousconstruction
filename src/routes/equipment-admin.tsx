@@ -329,13 +329,14 @@ function Attention({
   const fuel = machines.filter((m) => m.fuel_level === "Needs Fuel");
   const out = machines.filter((m) => !!m.responsible_operator);
 
-  const rows: {
+  type Row = {
     key: string;
     title: string;
     detail: string;
     tab: Tab;
     tone: "stop" | "eod" | "accent" | "dim";
-  }[] = [
+  };
+  const all: Row[] = [
     {
       key: "dno",
       title: `${dno.length} Do Not Operate`,
