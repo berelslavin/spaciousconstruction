@@ -183,8 +183,9 @@ function AdminPage() {
 
 /* ---------------- App shell ---------------- */
 
-type Tab = "live" | "machines" | "activity" | "operators" | "transfer" | "issues";
+type Tab = "attention" | "live" | "machines" | "activity" | "operators" | "transfer" | "issues";
 const TABS: [Tab, string][] = [
+  ["attention", "Needs you"],
   ["live", "Live"],
   ["machines", "Machines"],
   ["activity", "Activity"],
@@ -196,7 +197,7 @@ const TABS: [Tab, string][] = [
 type Op = { id: string; name: string; active: boolean; custody_count: number };
 
 function AdminApp({ pin }: { pin: string }) {
-  const [tab, setTab] = useState<Tab>("live");
+  const [tab, setTab] = useState<Tab>("attention");
   const [machines, setMachines] = useState<Machine[]>([]);
   const [ops, setOps] = useState<Op[]>([]);
   const [refreshed, setRefreshed] = useState<Date | null>(null);
@@ -277,6 +278,7 @@ function AdminApp({ pin }: { pin: string }) {
       </div>
       <div className="space-y-4 px-4 pt-4">
         {loadErr && <Msg err={loadErr} />}
+        {tab === "attention" && <Attention machines={machines} pin={pin} go={setTab} />}
         {tab === "live" && <Live machines={machines} pin={pin} />}
         {tab === "machines" && <Machines pin={pin} onSaved={refresh} />}
         {tab === "activity" && <Activity pin={pin} machines={machines} />}
