@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+// me/saveMe: this phone remembers the last operator (localStorage sb_operator) to pre-fill pickers.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -58,7 +59,20 @@ function FieldPage() {
   const [access, setAccess] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [me, setMe] = useState(() =>
+    typeof window === "undefined" ? "" : (localStorage.getItem("sb_operator") ?? ""),
+  );
   const online = useOnline();
+
+  const saveMe = useCallback((name: string) => {
+    setMe(name);
+    try {
+      if (name) localStorage.setItem("sb_operator", name);
+      else localStorage.removeItem("sb_operator");
+    } catch {
+      /* private mode — remembering just won't persist */
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const [mRes, oRes, aRes] = await Promise.all([
@@ -138,6 +152,9 @@ function FieldPage() {
 
       {flow === null && (
         <>
+          {loaded && me && (
+            <MyMachines machines={machines} me={me} goReturn={openReturn} />
+          )}
           <h1 className="mt-5 text-4xl font-black leading-tight">What are you doing?</h1>
           <div className="mt-5 space-y-3">
             <HomeButton label="Check out machine" hint="Start using a machine" onClick={() => open("checkout")} />
@@ -145,7 +162,19 @@ function FieldPage() {
             <HomeButton label="Return machine / end-of-day" hint="Park it, take a photo" onClick={() => open("return")} />
             <HomeButton label="Report issue" hint="Damage or defect — stops the machine" onClick={() => open("issue")} danger />
           </div>
-          <div className="mt-8 text-center">
+          {me && (
+            <p className="mt-5 text-center text-base font-bold text-field-dim">
+              This phone is {me}.{" "}
+              <button
+                type="button"
+                onClick={() => saveMe("")}
+                className="inline-flex min-h-11 items-center px-2 underline underline-offset-4"
+              >
+                Not you?
+              </button>
+            </p>
+          )}
+          <div className="mt-4 text-center">
             <Link
               to="/equipment-admin"
               className="inline-flex min-h-11 items-center px-3 text-sm font-bold text-field-dim underline underline-offset-4"
@@ -166,6 +195,8 @@ function FieldPage() {
           onBack={done}
           goReturn={openReturn}
           access={access}
+          me={me}
+          saveMe={saveMe}
         />
       )}
       {flow === "transfer" && (
@@ -185,6 +216,8 @@ function FieldPage() {
           onDone={done}
           onBack={done}
           initialCode={returnMachineCode}
+          me={me}
+          saveMe={saveMe}
         />
       )}
       {flow === "issue" && (
@@ -194,6 +227,8 @@ function FieldPage() {
           online={online}
           onDone={done}
           onBack={done}
+          me={me}
+          saveMe={saveMe}
         />
       )}
     </div>
@@ -227,6 +262,57 @@ function HomeButton({
       </span>
       <span aria-hidden className="text-3xl font-black opacity-60">›</span>
     </button>
+  );
+}
+
+function MyMachines({
+  machines,
+  me,
+  goReturn,
+}: {
+  machines: Machine[];
+  me: string;
+  goReturn: (code: string) => void;
+}) {
+  const mine = machines.filter((m) => m.responsible_operator === me);
+  if (mine.length === 0) return null;
+  return (
+    <div className="mt-4 space-y-2">
+      {mine.map((m) => {
+        const dno = m.status === S_DNO;
+        const needsReturn = !!m.eod_missing;
+        return (
+          <div
+            key={m.code}
+            className={`rounded-2xl border-4 p-4 ${
+              dno ? "border-field-stop" : needsReturn ? "border-field-eod" : "border-field-line"
+            }`}
+          >
+            <p className="text-xl font-black leading-tight">
+              You hold: {m.code} <span className="font-bold text-field-dim">{m.name}</span>
+            </p>
+            <p className="mt-0.5 text-base font-bold text-field-dim">
+              {dno
+                ? "Do Not Operate — park it at its return location."
+                : needsReturn
+                  ? "End-of-day is missing — do the return today."
+                  : (m.current_task_location ?? "Checked out")}
+            </p>
+            {(dno || needsReturn) && (
+              <button
+                type="button"
+                onClick={() => goReturn(m.code)}
+                className={`mt-3 min-h-[64px] w-full rounded-2xl text-2xl font-black ${
+                  dno ? "bg-field-stop text-field-ink" : "bg-field-eod text-field-accent-ink"
+                }`}
+              >
+                Return / end-of-day now
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -582,6 +668,8 @@ function Checkout({
   onBack,
   goReturn,
   access,
+  me,
+  saveMe,
 }: {
   machines: Machine[];
   operators: string[];
@@ -590,9 +678,11 @@ function Checkout({
   onBack: () => void;
   goReturn: (code: string) => void;
   access: Set<string>;
+  me: string;
+  saveMe: (name: string) => void;
 }) {
   const [code, setCode] = useState("");
-  const [operator, setOperator] = useState("");
+  const [operator, setOperator] = useState(() => (operators.includes(me) ? me : ""));
   const [task, setTask] = useState("");
   const [safe, setSafe] = useState(false);
   const [fuel, setFuel] = useState("");
@@ -636,13 +726,15 @@ function Checkout({
     });
     setBusy(false);
     if (e) setError(rpcError(e));
-    else
+    else {
+      saveMe(operator);
       setSaved([
         `${code} ${machine?.name ?? ""}`,
         `Responsible: ${operator}`,
         `Task: ${task.trim()}`,
         "You own it until return or approved transfer.",
       ]);
+    }
   };
 
   return (
@@ -873,6 +965,8 @@ function ReturnEod({
   onDone,
   onBack,
   initialCode,
+  me,
+  saveMe,
 }: {
   machines: Machine[];
   operators: string[];
@@ -880,9 +974,11 @@ function ReturnEod({
   onDone: () => void;
   onBack: () => void;
   initialCode: string;
+  me: string;
+  saveMe: (name: string) => void;
 }) {
   const [code, setCode] = useState(initialCode);
-  const [operator, setOperator] = useState("");
+  const [operator, setOperator] = useState(() => (operators.includes(me) ? me : ""));
   const [photo, setPhoto] = useState<File | null>(null);
   const [fuel, setFuel] = useState("");
   const [note, setNote] = useState("");
@@ -904,10 +1000,10 @@ function ReturnEod({
   ].filter(Boolean) as string[];
 
   useEffect(() => {
-    setOperator("");
+    setOperator(operators.includes(me) ? me : "");
     setParked(false);
     setFuel("");
-  }, [code]);
+  }, [code, operators, me]);
 
   if (saved) return <Confirmation title="EOD complete" lines={saved} onDone={onDone} />;
 
@@ -926,6 +1022,7 @@ function ReturnEod({
         ...(note.trim() ? { p_note: note.trim() } : {}),
       });
       if (e) throw new Error(rpcError(e));
+      saveMe(who);
       const eod = (data as { eod_date?: string } | null)?.eod_date ?? todayChicago();
       setSaved([
         `${machine.code} ${machine.name ?? ""}`,
@@ -1018,15 +1115,19 @@ function ReportIssue({
   online,
   onDone,
   onBack,
+  me,
+  saveMe,
 }: {
   machines: Machine[];
   operators: string[];
   online: boolean;
   onDone: () => void;
   onBack: () => void;
+  me: string;
+  saveMe: (name: string) => void;
 }) {
   const [code, setCode] = useState("");
-  const [reporter, setReporter] = useState("");
+  const [reporter, setReporter] = useState(() => (operators.includes(me) ? me : ""));
   const [desc, setDesc] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -1055,6 +1156,7 @@ function ReportIssue({
         p_photo_url: url,
       });
       if (e) throw new Error(rpcError(e));
+      saveMe(reporter);
       setSaved([
         `${machine.code} is DO NOT OPERATE`,
         `Issue: ${desc.trim()}`,

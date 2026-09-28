@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+// Admin home = "Needs you" tab; Machines/Operators use compact rows with expandable manage panels.
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -183,8 +184,9 @@ function AdminPage() {
 
 /* ---------------- App shell ---------------- */
 
-type Tab = "live" | "machines" | "activity" | "operators" | "transfer" | "issues";
+type Tab = "attention" | "live" | "machines" | "activity" | "operators" | "transfer" | "issues";
 const TABS: [Tab, string][] = [
+  ["attention", "Needs you"],
   ["live", "Live"],
   ["machines", "Machines"],
   ["activity", "Activity"],
@@ -196,7 +198,7 @@ const TABS: [Tab, string][] = [
 type Op = { id: string; name: string; active: boolean; custody_count: number };
 
 function AdminApp({ pin }: { pin: string }) {
-  const [tab, setTab] = useState<Tab>("live");
+  const [tab, setTab] = useState<Tab>("attention");
   const [machines, setMachines] = useState<Machine[]>([]);
   const [ops, setOps] = useState<Op[]>([]);
   const [refreshed, setRefreshed] = useState<Date | null>(null);
@@ -277,6 +279,7 @@ function AdminApp({ pin }: { pin: string }) {
       </div>
       <div className="space-y-4 px-4 pt-4">
         {loadErr && <Msg err={loadErr} />}
+        {tab === "attention" && <Attention machines={machines} pin={pin} go={setTab} />}
         {tab === "live" && <Live machines={machines} pin={pin} />}
         {tab === "machines" && <Machines pin={pin} onSaved={refresh} />}
         {tab === "activity" && <Activity pin={pin} machines={machines} />}
@@ -287,6 +290,140 @@ function AdminApp({ pin }: { pin: string }) {
         {tab === "issues" && <Issues pin={pin} onSaved={refresh} />}
       </div>
     </div>
+  );
+}
+
+/* ---------------- Needs you (admin home) ---------------- */
+
+function Attention({
+  machines,
+  pin,
+  go,
+}: {
+  machines: Machine[];
+  pin: string;
+  go: (t: Tab) => void;
+}) {
+  const [openIssues, setOpenIssues] = useState<number | null>(null);
+  const [pendingAuths, setPendingAuths] = useState<number | null>(null);
+
+  useEffect(() => {
+    void supabase
+      .rpc("admin_issues", { p_pin: pin })
+      .then(({ data }) =>
+        setOpenIssues(
+          ((data ?? []) as { status: string }[]).filter((i) => i.status === "open").length,
+        ),
+      );
+    void supabase
+      .rpc("admin_authorizations", { p_pin: pin })
+      .then(({ data }) =>
+        setPendingAuths(
+          ((data ?? []) as { state: string }[]).filter((a) => a.state === "valid").length,
+        ),
+      );
+  }, [pin]);
+
+  const dno = machines.filter((m) => m.do_not_operate);
+  const eod = machines.filter((m) => m.eod_missing);
+  const fuel = machines.filter((m) => m.fuel_level === "Needs Fuel");
+  const out = machines.filter((m) => !!m.responsible_operator);
+
+  type Row = {
+    key: string;
+    title: string;
+    detail: string;
+    tab: Tab;
+    tone: "stop" | "eod" | "accent" | "dim";
+  };
+  const all: Row[] = [
+    {
+      key: "dno",
+      title: `${dno.length} Do Not Operate`,
+      detail: dno.map((m) => m.code).join(", "),
+      tab: "issues",
+      tone: "stop",
+    },
+    {
+      key: "issues",
+      title: `${openIssues ?? "…"} open issue${openIssues === 1 ? "" : "s"}`,
+      detail: "Reported by workers — clear them to return machines to service",
+      tab: "issues",
+      tone: "stop",
+    },
+    {
+      key: "eod",
+      title: `${eod.length} missing end-of-day`,
+      detail: eod.map((m) => `${m.code}${m.responsible_operator ? ` (${m.responsible_operator})` : ""}`).join(", "),
+      tab: "machines",
+      tone: "eod",
+    },
+    {
+      key: "fuel",
+      title: `${fuel.length} need${fuel.length === 1 ? "s" : ""} fuel`,
+      detail: fuel.map((m) => m.code).join(", "),
+      tab: "live",
+      tone: "accent",
+    },
+    {
+      key: "auths",
+      title: `${pendingAuths ?? "…"} transfer approval${pendingAuths === 1 ? "" : "s"} waiting to be used`,
+      detail: "Valid today only",
+      tab: "transfer",
+      tone: "dim",
+    },
+  ];
+  const rows = all.filter((r) =>
+    r.key === "dno"
+      ? dno.length > 0
+      : r.key === "issues"
+        ? (openIssues ?? 0) > 0
+        : r.key === "eod"
+          ? eod.length > 0
+          : r.key === "fuel"
+            ? fuel.length > 0
+            : (pendingAuths ?? 0) > 0,
+  );
+
+  const toneCls = {
+    stop: "border-field-stop",
+    eod: "border-field-eod",
+    accent: "border-field-accent",
+    dim: "border-field-line",
+  };
+
+  return (
+    <>
+      <H2>Needs you</H2>
+      <p className="text-sm text-field-dim">
+        {out.length} machine{out.length === 1 ? "" : "s"} checked out right now.
+      </p>
+      {rows.length === 0 && (
+        <p className="rounded-2xl bg-field-go p-4 text-lg font-black text-field-accent-ink">
+          All clear — nothing needs you right now.
+        </p>
+      )}
+      <div className="divide-y divide-field-line overflow-hidden rounded-2xl border-2 border-field-line">
+        {rows.map((r) => (
+          <button
+            key={r.key}
+            type="button"
+            onClick={() => go(r.tab)}
+            className={`flex min-h-[56px] w-full items-center gap-3 border-l-8 px-3 py-2 text-left active:bg-field-panel ${toneCls[r.tone]}`}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-lg font-black leading-tight">{r.title}</span>
+              {r.detail && (
+                <span className="block truncate text-sm font-bold text-field-dim">{r.detail}</span>
+              )}
+            </span>
+            <span aria-hidden className="text-2xl font-black opacity-60">
+              ›
+            </span>
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -468,25 +605,28 @@ function Machines({ pin, onSaved }: { pin: string; onSaved: () => void }) {
       {editing === "new" && (
         <MachineForm pin={pin} onDone={saved} onCancel={() => setEditing(null)} />
       )}
-      {list.map((m) =>
-        editing === m.id ? (
-          <MachineForm
-            key={m.id}
-            pin={pin}
-            machine={m}
-            onDone={saved}
-            onCancel={() => setEditing(null)}
-          />
-        ) : (
-          <Card key={m.id} className={m.active ? "" : "opacity-60"}>
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-xl font-black">
+      <div className="divide-y divide-field-line overflow-hidden rounded-2xl border-2 border-field-line">
+        {list.map((m) =>
+          editing === m.id ? (
+            <div key={m.id} className="p-2">
+              <MachineForm
+                pin={pin}
+                machine={m}
+                onDone={saved}
+                onCancel={() => setEditing(null)}
+              />
+            </div>
+          ) : (
+            <div
+              key={m.id}
+              className={`flex min-h-[56px] items-center gap-3 px-3 py-2 ${m.active ? "" : "opacity-60"}`}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-lg font-black leading-tight">
                   {m.code} <span className="font-bold">{m.name}</span>
                 </p>
-                <p className="text-base">Return: {m.return_location}</p>
-                <p className="text-sm text-field-dim">
-                  {m.active ? "Active" : "Inactive — hidden from workers"}
+                <p className="truncate text-sm text-field-dim">
+                  {m.active ? "Active" : "Inactive"}
                   {m.responsible_operator ? ` · with ${m.responsible_operator}` : ""}
                   {m.do_not_operate ? " · DNO" : ""}
                   {m.eod_missing ? " · Missing EOD" : ""}
@@ -496,9 +636,9 @@ function Machines({ pin, onSaved }: { pin: string; onSaved: () => void }) {
                 Edit
               </button>
             </div>
-          </Card>
-        ),
-      )}
+          ),
+        )}
+      </div>
     </>
   );
 }
@@ -839,6 +979,7 @@ function Operators({
     }
   };
   const [newName, setNewName] = useState("");
+  const [expand, setExpand] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [err, setErr] = useState("");
@@ -887,9 +1028,34 @@ function Operators({
         </button>
       </Card>
       <Msg err={err} ok={ok} />
-      {ops.map((o) => (
-        <Card key={o.id} className={o.active ? "" : "opacity-60"}>
-          {editing === o.id ? (
+      <div className="divide-y divide-field-line overflow-hidden rounded-2xl border-2 border-field-line">
+        {ops.map((o) => {
+          const open = expand === o.id || editing === o.id || picking === o.id;
+          return (
+            <div key={o.id} className={`px-3 py-2 ${o.active ? "" : "opacity-60"}`}>
+              <div className="flex min-h-[56px] items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-lg font-black leading-tight">{o.name}</p>
+                  <p className="truncate text-sm text-field-dim">
+                    {o.active ? "Active" : "Inactive"}
+                    {o.custody_count > 0
+                      ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}`
+                      : ""}
+                    {" · "}
+                    {(access[o.name] ?? []).length
+                      ? (access[o.name] ?? []).join(", ")
+                      : "no machines"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className={ghostBtn}
+                  onClick={() => setExpand(open ? null : o.id)}
+                >
+                  {open ? "Close" : "Manage"}
+                </button>
+              </div>
+              {!open ? null : editing === o.id ? (
             <div className="space-y-2">
               <input
                 className={inputCls}
@@ -912,22 +1078,7 @@ function Operators({
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <div>
-                <p className="break-words text-xl font-black">{o.name}</p>
-                <p className="text-sm text-field-dim">
-                  {o.active ? "Active" : "Inactive"}
-                  {o.custody_count > 0
-                    ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}`
-                    : ""}
-                </p>
-                <p className="text-sm font-bold">
-                  Can use:{" "}
-                  {(access[o.name] ?? []).length
-                    ? (access[o.name] ?? []).join(", ")
-                    : "no machines yet"}
-                </p>
-              </div>
+            <div className="space-y-2 pt-1">
               {picking === o.id ? (
                 <div className="space-y-1">
                   {machines.map((m) => (
@@ -994,8 +1145,10 @@ function Operators({
               </div>
             </div>
           )}
-        </Card>
-      ))}
+            </div>
+          );
+        })}
+      </div>
     </>
   );
 }
