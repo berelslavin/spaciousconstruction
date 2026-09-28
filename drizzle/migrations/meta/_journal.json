@@ -50,6 +50,13 @@
       "when": 1790556706559,
       "tag": "0006_tighten_equipment_security",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790556716994,
+      "tag": "0007_photo_upload_policy_use_dashboard",
+      "breakpoints": true
     }
   ]
 }
