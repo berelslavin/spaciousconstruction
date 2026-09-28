@@ -603,6 +603,14 @@ export type Database = {
     }
     Functions: {
       _eq_require_pin: { Args: { p_pin: string }; Returns: undefined }
+      accept_transfer: {
+        Args: {
+          p_machine_code: string
+          p_operator_name: string
+          p_task_location: string
+        }
+        Returns: Json
+      }
       admin_activity: {
         Args: {
           p_machine_code?: string
@@ -792,6 +800,16 @@ export type Database = {
         Args: { p_machine_code: string }
         Returns: {
           to_operator: string
+        }[]
+      }
+      my_pending_transfers: {
+        Args: { p_operator_name: string }
+        Returns: {
+          authorized_by: string
+          created_at: string
+          from_operator: string
+          machine_code: string
+          machine_name: string
         }[]
       }
       open_fuel_requests: {
