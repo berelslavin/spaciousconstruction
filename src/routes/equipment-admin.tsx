@@ -597,7 +597,83 @@ function MachineForm({
           Cancel
         </button>
       </div>
+      {machine?.active && (machine.responsible_operator || machine.eod_missing) && (
+        <ForceReturn pin={pin} machine={machine} onDone={onDone} />
+      )}
     </Card>
+  );
+}
+
+function ForceReturn({
+  pin,
+  machine,
+  onDone,
+}: {
+  pin: string;
+  machine: AdminMachine;
+  onDone: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [by, setBy] = useState("");
+  const [note, setNote] = useState("");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    setBusy(true);
+    setErr("");
+    const { error } = await supabase.rpc("admin_force_return", {
+      p_pin: pin,
+      p_machine_id: machine.id,
+      p_by: by,
+      p_note: note,
+    });
+    setBusy(false);
+    if (error) setErr(rpcError(error));
+    else onDone();
+  };
+  if (!open)
+    return (
+      <button type="button" className={`${ghostBtn} w-full`} onClick={() => setOpen(true)}>
+        Force return (operator unreachable)
+      </button>
+    );
+  return (
+    <div className="space-y-3 border-t-2 border-field-line pt-3">
+      <p className="text-lg font-black">Force return {machine.code}</p>
+      <p className="text-sm text-field-dim">
+        {machine.responsible_operator
+          ? `Takes it away from ${machine.responsible_operator} and `
+          : ""}
+        marks end-of-day done at {machine.return_location}. Only do this after you've confirmed the
+        machine is parked there. Logged in Activity with your name.
+        {machine.do_not_operate ? " It stays Do Not Operate." : ""}
+      </p>
+      <Field label="Your name">
+        <input className={inputCls} value={by} onChange={(e) => setBy(e.target.value)} />
+      </Field>
+      <Field label="Why (required)">
+        <input
+          className={inputCls}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Operator unreachable, I saw it at the yard"
+        />
+      </Field>
+      <Msg err={err} />
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className={`${primaryBtn} flex-1`}
+          disabled={busy || !by.trim() || !note.trim()}
+          onClick={submit}
+        >
+          {busy ? "Saving…" : "Confirm force return"}
+        </button>
+        <button type="button" className={ghostBtn} onClick={() => setOpen(false)}>
+          Cancel
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -623,6 +699,7 @@ const ACTION_LABEL: Record<string, string> = {
   return: "Return / EOD",
   issue: "Issue",
   clear: "Issue cleared",
+  force_return: "Admin force return",
 };
 
 function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
