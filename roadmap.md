@@ -4,9 +4,15 @@
 - [ ] Verify all required scenarios without production mutations
 
 - [x] Fuel requests: holder requests fuel; admin + fuel runners see it; "Fueled" requires a fuel level
-- [ ] One-tap transfer accept for receiver (verify end-to-end, then publish)
-- [ ] Idea 3: repeat-offender flag in admin "Needs you" (missed EOD counts per operator)
-- [ ] Idea 4: who's-got-what board (machine → holder + since when)
-- [ ] Idea 8: one-tap export of fuel/activity log as spreadsheet
-- [ ] Idea 10: favorites at top of machine picker per phone
-- [ ] Idea 11: rain day switch (pauses fuel dues + EOD expectations)
+- [x] One-tap transfer accept for receiver (verified end-to-end on real backend)
+- [x] Idea 3: repeat-offender flag in admin "Needs you" (missed EOD counts per operator)
+- [x] Idea 4: who's-got-what board (machine → holder + since when) on worker home
+- [x] Idea 8: one-tap export of fuel/activity log as spreadsheet (CSV in admin Activity tab)
+- [x] Idea 10: favorites at top of machine picker per phone (star toggle, localStorage)
+- [x] Idea 11: rain day switch (admin toggle pauses fuel dues + EOD expectations; worker banner)
+- [x] EOD cutoff changed to 7:00 PM Chicago
+- [ ] Publish preview to live site (accept-transfer, fuel requests, ideas 3/4/8/10/11 all pending)
+- [ ] Narrow operator-machine access per person (currently everyone can use all 6)
+- [ ] Assign fuel runners (none selected yet)
+- [ ] Admin design pass: Activity/Transfers/Issues tabs still card-based
+- [ ] Review 4 open security findings from last publish scan

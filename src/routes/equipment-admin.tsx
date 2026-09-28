@@ -12,6 +12,7 @@ import {
   rpcError,
   shortStatus,
   statusTone,
+  todayChicago,
   useOnline,
   type Machine,
 } from "@/lib/equipment";
@@ -307,6 +308,7 @@ function Attention({
 }) {
   const [openIssues, setOpenIssues] = useState<number | null>(null);
   const [pendingAuths, setPendingAuths] = useState<number | null>(null);
+  const [offenders, setOffenders] = useState<{ operator: string; missed: number }[]>([]);
 
   useEffect(() => {
     void supabase
@@ -322,6 +324,11 @@ function Attention({
         setPendingAuths(
           ((data ?? []) as { state: string }[]).filter((a) => a.state === "valid").length,
         ),
+      );
+    void supabase
+      .rpc("admin_eod_offenders", { p_pin: pin })
+      .then(({ data }) =>
+        setOffenders((data ?? []) as { operator: string; missed: number }[]),
       );
   }, [pin]);
 
@@ -393,9 +400,12 @@ function Attention({
     dim: "border-field-line",
   };
 
+  const repeatOffenders = offenders.filter((o) => o.missed > 0);
+
   return (
     <>
       <H2>Needs you</H2>
+      <RainToggle pin={pin} />
       <FuelRequests by="Admin" pin={pin} />
       <p className="text-sm text-field-dim">
         {out.length} machine{out.length === 1 ? "" : "s"} checked out right now.
@@ -425,7 +435,62 @@ function Attention({
           </button>
         ))}
       </div>
+      {repeatOffenders.length > 0 && (
+        <div className="rounded-2xl border-2 border-field-eod p-4">
+          <p className="text-lg font-black">Missed end-of-day count</p>
+          <p className="text-sm font-bold text-field-dim">
+            Current misses + times you had to force-return their machine.
+          </p>
+          <div className="mt-2 divide-y divide-field-line">
+            {repeatOffenders.map((o) => (
+              <p key={o.operator} className="py-1 text-base font-bold">
+                {o.operator} — {o.missed}×
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
     </>
+  );
+}
+
+/* ---------------- Rain day toggle ---------------- */
+
+function RainToggle({ pin }: { pin: string }) {
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    void supabase
+      .rpc("admin_settings", { p_pin: pin })
+      .then(({ data }) => setOn(!!(data as { rain_today?: boolean } | null)?.rain_today));
+  }, [pin]);
+
+  const toggle = async () => {
+    if (on === null || busy) return;
+    setBusy(true);
+    const { data } = await supabase.rpc("admin_set_rain_day", { p_pin: pin, p_on: !on });
+    setOn(!!(data as { rain_today?: boolean } | null)?.rain_today);
+    setBusy(false);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      disabled={busy || on === null}
+      aria-pressed={on ?? false}
+      className={`flex min-h-[56px] w-full items-center justify-between gap-3 rounded-2xl border-2 px-4 text-left ${
+        on ? "border-field-accent bg-field-panel" : "border-field-line"
+      }`}
+    >
+      <span className="text-lg font-black">🌧 Rain day {on ? "ON" : "off"}</span>
+      <span className="text-sm font-bold text-field-dim">
+        {on
+          ? "End-of-day + fuel readings paused today — tap to clear"
+          : "Tap to pause end-of-day + fuel readings for today"}
+      </span>
+    </button>
   );
 }
 
@@ -873,9 +938,61 @@ function Activity({ pin, machines }: { pin: string; machines: Machine[] }) {
     };
   }, [pin, code, type, today]);
 
+  const [exporting, setExporting] = useState(false);
+  const exportCsv = async () => {
+    setExporting(true);
+    const { data, error } = await supabase.rpc("admin_activity", {
+      p_pin: pin,
+      p_machine_code: "",
+      p_type: "",
+      p_today_only: false,
+    });
+    setExporting(false);
+    if (error) {
+      setErr(rpcError(error));
+      return;
+    }
+    const all = (data ?? []) as Act[];
+    const esc = (v: unknown) => `"${String(v ?? "").replaceAll('"', '""')}"`;
+    const csv = [
+      "time,machine,machine_name,action,operator,from,to,task,fuel,note,photo",
+      ...all.map((r) =>
+        [
+          r.created_at,
+          r.machine_code,
+          r.machine_name,
+          r.type,
+          r.operator,
+          r.from_operator,
+          r.to_operator,
+          r.task_location,
+          r.fuel_level,
+          r.note,
+          r.photo_url,
+        ]
+          .map(esc)
+          .join(","),
+      ),
+    ].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `machine-activity-${todayChicago()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <H2>Activity log</H2>
+      <button
+        type="button"
+        onClick={exportCsv}
+        disabled={exporting}
+        className="min-h-[56px] w-full rounded-2xl border-2 border-field-accent text-lg font-black"
+      >
+        {exporting ? "Preparing…" : "⬇ Export full log as spreadsheet (CSV)"}
+      </button>
       <div className="grid grid-cols-2 gap-2">
         <select
           className={inputCls}

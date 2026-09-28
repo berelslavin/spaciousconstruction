@@ -9,6 +9,7 @@ import {
   S_EOD,
   S_OUT,
   fmtDate,
+  fmtTime,
   loadMachines,
   rpcError,
   shortStatus,
@@ -163,6 +164,12 @@ function FieldPage() {
         <p className="mt-3 rounded-xl bg-field-stop p-3 text-lg font-bold">{loadError}</p>
       )}
 
+      {flow === null && loaded && machines.some((m) => m.rain_today) && (
+        <p className="mt-3 rounded-xl border-2 border-field-line bg-field-panel p-3 text-lg font-bold">
+          🌧 Rain day — no end-of-day or fuel readings expected today.
+        </p>
+      )}
+
       {flow === null && (
         <>
           {loaded && me && (
@@ -186,6 +193,7 @@ function FieldPage() {
             <HomeButton label="Return machine / end-of-day" hint="Park it, take a photo" onClick={() => open("return")} />
             <HomeButton label="Report issue" hint="Damage or defect — stops the machine" onClick={() => open("issue")} danger />
           </div>
+          {loaded && <WhosGotWhat machines={machines} />}
           {me && (
             <p className="mt-5 text-center text-base font-bold text-field-dim">
               This phone is {me}.{" "}
@@ -350,6 +358,38 @@ function MyMachines({
   );
 }
 
+function WhosGotWhat({ machines }: { machines: Machine[] }) {
+  if (machines.length === 0) return null;
+  return (
+    <div className="mt-6">
+      <h2 className="text-sm font-black uppercase tracking-widest text-field-dim">
+        Who's got what
+      </h2>
+      <div className="mt-2 divide-y divide-field-line overflow-hidden rounded-2xl border-2 border-field-line">
+        {machines.map((m) => (
+          <div key={m.code} className="flex min-h-[44px] items-center gap-3 px-4 py-1.5">
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-lg font-black leading-tight">
+                {m.code} <span className="font-bold text-field-dim">{m.name}</span>
+              </span>
+              <span className="block truncate text-sm font-bold text-field-dim">
+                {m.responsible_operator
+                  ? `${m.responsible_operator} · since ${fmtTime(m.custody_since)}`
+                  : "In the yard"}
+              </span>
+            </span>
+            <span
+              className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-black ${statusTone(m.status)}`}
+            >
+              {shortStatus(m.status)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function RequestFuel({ code, me }: { code: string; me: string }) {
   const [state, setState] = useState<"idle" | "busy" | "sent" | string>("idle");
   const send = async () => {
@@ -423,8 +463,30 @@ function MachinePicker({
   onChange: (code: string) => void;
   empty: string;
 }) {
+  const [favs, setFavs] = useState<string[]>(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem("sb_fav_machines") ?? "[]");
+      return Array.isArray(parsed) ? parsed.filter((c) => typeof c === "string") : [];
+    } catch {
+      return [];
+    }
+  });
+  const toggleFav = (code: string) => {
+    setFavs((prev) => {
+      const next = prev.includes(code) ? prev.filter((c) => c !== code) : [code, ...prev];
+      try {
+        localStorage.setItem("sb_fav_machines", JSON.stringify(next));
+      } catch {
+        /* private mode — favorites just won't persist */
+      }
+      return next;
+    });
+  };
   const chosen = machines.find((m) => m.code === value);
-  const list = chosen ? [chosen] : machines;
+  const sorted = [...machines].sort(
+    (a, b) => Number(favs.includes(b.code)) - Number(favs.includes(a.code)),
+  );
+  const list = chosen ? [chosen] : sorted;
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -468,6 +530,26 @@ function MachinePicker({
                   className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-black ${statusTone(m.status)}`}
                 >
                   {shortStatus(m.status)}
+                </span>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={favs.includes(m.code) ? `Remove ${m.code} from favorites` : `Favorite ${m.code}`}
+                  aria-pressed={favs.includes(m.code)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFav(m.code);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleFav(m.code);
+                    }
+                  }}
+                  className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-2xl text-field-accent"
+                >
+                  {favs.includes(m.code) ? "★" : "☆"}
                 </span>
               </button>
             );
@@ -772,7 +854,7 @@ function Checkout({
       : held
         ? `Already checked out to ${machine.responsible_operator}. A handoff needs an admin-approved transfer.`
         : "";
-  const needFuel = machine ? !machine.fuel_logged_today : false;
+  const needFuel = machine ? !machine.fuel_logged_today && !machine.rain_today : false;
   const missing = [
     !operator && "operator",
     !task.trim() && "task/location",
@@ -1182,7 +1264,7 @@ function ReturnEod({
   const locked = machine?.responsible_operator ?? null;
   const redundant = !!machine && !locked && !machine.eod_missing;
   const who = locked ?? operator;
-  const needFuel = machine ? !machine.fuel_logged_today : false;
+  const needFuel = machine ? !machine.fuel_logged_today && !machine.rain_today : false;
   const missing = [
     !who && "operator",
     !photo && "photo",
