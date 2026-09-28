@@ -847,6 +847,8 @@ function Checkout({
   useEffect(() => {
     if (operator && !access.has(`${operator}|${code}`)) setOperator("");
   }, [code, operator, access]);
+  const [pin, setPin] = useState("");
+  useEffect(() => setPin(""), [operator]);
   const dno = machine?.status === S_DNO;
   const eodMissing = !!machine?.eod_missing;
   const held = !!machine?.responsible_operator;
@@ -863,6 +865,7 @@ function Checkout({
     !task.trim() && "task/location",
     needFuel && !fuel && "fuel reading",
     !safe && "safety confirmation",
+    pin.length !== 4 && "your 4-digit code",
   ].filter(Boolean) as string[];
 
   if (saved) return <Confirmation title="Checked out" lines={saved} onDone={onDone} />;
@@ -875,10 +878,14 @@ function Checkout({
       p_operator_name: operator,
       p_task_location: task.trim(),
       p_safe_confirmed: safe,
+      p_operator_pin: pin,
       ...(needFuel ? { p_fuel_level: fuel } : {}),
     });
     setBusy(false);
-    if (e) setError(rpcError(e));
+    if (e) {
+      setPin("");
+      setError(rpcError(e));
+    }
     else {
       saveMe(operator);
       setSaved([
@@ -934,6 +941,7 @@ function Checkout({
           />
           {needFuel && <FuelPicker value={fuel} onChange={setFuel} />}
           <Check checked={safe} onChange={setSafe} label={SAFETY_TEXT} />
+          {operator && <PinInput name={operator} value={pin} onChange={setPin} />}
           <Alert message={error} />
           <Missing items={missing} />
           <Submit
@@ -1173,6 +1181,7 @@ function AcceptTransfer({
   onBack: () => void;
 }) {
   const [task, setTask] = useState("");
+  const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<string[] | null>(null);
@@ -1186,7 +1195,9 @@ function AcceptTransfer({
       p_machine_code: target.machine_code,
       p_operator_name: me,
       p_task_location: task.trim(),
+      p_operator_pin: pin,
     });
+    if (e) setPin("");
     setBusy(false);
     if (e) setError(rpcError(e));
     else
@@ -1198,7 +1209,10 @@ function AcceptTransfer({
       ]);
   };
 
-  const missing = [!task.trim() && "task/location"].filter(Boolean) as string[];
+  const missing = [
+    !task.trim() && "task/location",
+    pin.length !== 4 && "your 4-digit code",
+  ].filter(Boolean) as string[];
 
   return (
     <Shell title="Take over machine" onBack={onBack}>
@@ -1219,7 +1233,9 @@ function AcceptTransfer({
         onChange={setTask}
         placeholder="e.g. Grading, House 12"
       />
+      <PinInput name={me} value={pin} onChange={setPin} />
       <Alert message={error} />
+
       <Missing items={missing} />
       <Submit
         disabled={missing.length > 0}
