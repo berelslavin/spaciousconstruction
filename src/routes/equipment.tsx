@@ -309,6 +309,54 @@ function MyMachines({
                 Return / end-of-day now
               </button>
             )}
+            <RequestFuel code={m.code} me={me} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function RequestFuel({ code, me }: { code: string; me: string }) {
+  const [state, setState] = useState<"idle" | "busy" | "sent" | string>("idle");
+  const send = async () => {
+    setState("busy");
+    const { data, error } = await supabase.rpc("request_fuel", {
+      p_machine_code: code,
+      p_operator_name: me,
+    });
+    if (error) setState(rpcError(error));
+    else setState((data as { already?: boolean })?.already ? "already" : "sent");
+  };
+  if (state === "sent" || state === "already")
+    return (
+      <p className="mt-3 text-lg font-black text-field-go">
+        ⛽ Fuel {state === "already" ? "already requested" : "requested"} — help is on the way.
+      </p>
+    );
+  return (
+    <>
+      <button
+        type="button"
+        disabled={state === "busy"}
+        onClick={send}
+        className="mt-3 min-h-[56px] w-full rounded-2xl border-4 border-field-accent text-xl font-black"
+      >
+        ⛽ Request fuel
+      </button>
+      {state !== "idle" && state !== "busy" && (
+        <p className="mt-1 font-bold text-field-stop">{state}</p>
+      )}
+    </>
+  );
+}
+
+function _unusedEnd() {
+  return (
+    <div>
+      {[0].map(() => {
+        return (
+          <div>
           </div>
         );
       })}
