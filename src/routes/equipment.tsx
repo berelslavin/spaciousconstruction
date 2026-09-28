@@ -117,6 +117,7 @@ function FieldPage() {
   const done = () => {
     setFlow(null);
     setReturnMachineCode("");
+    setAcceptTarget(null);
     window.scrollTo(0, 0);
     void load();
   };
@@ -1019,6 +1020,129 @@ function Transfer({
           {!statusBlocked && dests && dests.length === 0 && <Alert message={error} />}
         </>
       )}
+    </Shell>
+  );
+}
+
+/* ---------------- Accept transfer (receiver side, one tap) ---------------- */
+
+function PendingTransfers({
+  me,
+  onAccept,
+}: {
+  me: string;
+  onAccept: (t: PendingTransfer) => void;
+}) {
+  const [items, setItems] = useState<PendingTransfer[]>([]);
+
+  const load = useCallback(async () => {
+    const { data } = await supabase.rpc("my_pending_transfers", { p_operator_name: me });
+    setItems((data ?? []) as PendingTransfer[]);
+  }, [me]);
+
+  useEffect(() => {
+    void load();
+    const t = setInterval(() => void load(), 20000);
+    const onFocus = () => void load();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [load]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="mt-4 space-y-3">
+      {items.map((t) => (
+        <button
+          key={t.machine_code}
+          type="button"
+          onClick={() => onAccept(t)}
+          className="min-h-[80px] w-full rounded-2xl border-4 border-field-accent bg-field-panel px-4 py-3 text-left active:scale-[0.99]"
+        >
+          <span className="block text-xl font-black">
+            Approved for you: {t.machine_code} {t.machine_name}
+          </span>
+          <span className="block text-base font-bold text-field-dim">
+            From {t.from_operator} · approved by {t.authorized_by} — tap to take it
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function AcceptTransfer({
+  target,
+  me,
+  online,
+  onDone,
+  onBack,
+}: {
+  target: PendingTransfer;
+  me: string;
+  online: boolean;
+  onDone: () => void;
+  onBack: () => void;
+}) {
+  const [task, setTask] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState<string[] | null>(null);
+
+  if (saved) return <Confirmation title="It's yours now" lines={saved} onDone={onDone} />;
+
+  const submit = async () => {
+    setBusy(true);
+    setError("");
+    const { error: e } = await supabase.rpc("accept_transfer", {
+      p_machine_code: target.machine_code,
+      p_operator_name: me,
+      p_task_location: task.trim(),
+    });
+    setBusy(false);
+    if (e) setError(rpcError(e));
+    else
+      setSaved([
+        `${target.machine_code} ${target.machine_name}`,
+        `You are responsible for it now, ${me}.`,
+        `Task: ${task.trim()}`,
+        "You own it until return or approved transfer.",
+      ]);
+  };
+
+  const missing = [!task.trim() && "task/location"].filter(Boolean) as string[];
+
+  return (
+    <Shell title="Take over machine" onBack={onBack}>
+      <Info
+        label="Machine"
+        value={`${target.machine_code} ${target.machine_name}`}
+        big
+      />
+      <Info label="Coming from" value={target.from_operator} />
+      <p className="rounded-xl bg-field-panel p-3 text-base font-bold text-field-dim">
+        Approved by {target.authorized_by} · valid today only · one use. By taking it,
+        you become responsible for it until you return it or an admin approves another
+        transfer.
+      </p>
+      <TextInput
+        label="Task / location"
+        value={task}
+        onChange={setTask}
+        placeholder="e.g. Grading, House 12"
+      />
+      <Alert message={error} />
+      <Missing items={missing} />
+      <Submit
+        disabled={missing.length > 0}
+        busy={busy}
+        online={online}
+        label="Take it — I'm responsible now"
+        onClick={submit}
+      />
     </Shell>
   );
 }
