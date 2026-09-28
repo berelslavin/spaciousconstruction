@@ -668,6 +668,8 @@ function Checkout({
   onBack,
   goReturn,
   access,
+  me,
+  saveMe,
 }: {
   machines: Machine[];
   operators: string[];
@@ -676,9 +678,11 @@ function Checkout({
   onBack: () => void;
   goReturn: (code: string) => void;
   access: Set<string>;
+  me: string;
+  saveMe: (name: string) => void;
 }) {
   const [code, setCode] = useState("");
-  const [operator, setOperator] = useState("");
+  const [operator, setOperator] = useState(() => (operators.includes(me) ? me : ""));
   const [task, setTask] = useState("");
   const [safe, setSafe] = useState(false);
   const [fuel, setFuel] = useState("");
