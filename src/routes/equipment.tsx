@@ -1115,15 +1115,19 @@ function ReportIssue({
   online,
   onDone,
   onBack,
+  me,
+  saveMe,
 }: {
   machines: Machine[];
   operators: string[];
   online: boolean;
   onDone: () => void;
   onBack: () => void;
+  me: string;
+  saveMe: (name: string) => void;
 }) {
   const [code, setCode] = useState("");
-  const [reporter, setReporter] = useState("");
+  const [reporter, setReporter] = useState(() => (operators.includes(me) ? me : ""));
   const [desc, setDesc] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -1152,6 +1156,7 @@ function ReportIssue({
         p_photo_url: url,
       });
       if (e) throw new Error(rpcError(e));
+      saveMe(reporter);
       setSaved([
         `${machine.code} is DO NOT OPERATE`,
         `Issue: ${desc.trim()}`,
