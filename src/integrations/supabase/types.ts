@@ -543,6 +543,15 @@ export type Database = {
           valid_date: string
         }[]
       }
+      admin_force_return: {
+        Args: {
+          p_by: string
+          p_machine_id: string
+          p_note: string
+          p_pin: string
+        }
+        Returns: Json
+      }
       admin_issues: {
         Args: { p_pin: string }
         Returns: {
