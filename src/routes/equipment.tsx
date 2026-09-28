@@ -43,7 +43,10 @@ export const Route = createFileRoute("/equipment")({
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "SB Machines" },
     ],
-    links: [{ rel: "manifest", href: "/equipment.webmanifest" }],
+    links: [
+      { rel: "manifest", href: "/equipment.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+    ],
   }),
   component: FieldPage,
 });
