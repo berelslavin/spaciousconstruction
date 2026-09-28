@@ -264,6 +264,57 @@ function HomeButton({
   );
 }
 
+function MyMachines({
+  machines,
+  me,
+  goReturn,
+}: {
+  machines: Machine[];
+  me: string;
+  goReturn: (code: string) => void;
+}) {
+  const mine = machines.filter((m) => m.responsible_operator === me);
+  if (mine.length === 0) return null;
+  return (
+    <div className="mt-4 space-y-2">
+      {mine.map((m) => {
+        const dno = m.status === S_DNO;
+        const needsReturn = !!m.eod_missing;
+        return (
+          <div
+            key={m.code}
+            className={`rounded-2xl border-4 p-4 ${
+              dno ? "border-field-stop" : needsReturn ? "border-field-eod" : "border-field-line"
+            }`}
+          >
+            <p className="text-xl font-black leading-tight">
+              You hold: {m.code} <span className="font-bold text-field-dim">{m.name}</span>
+            </p>
+            <p className="mt-0.5 text-base font-bold text-field-dim">
+              {dno
+                ? "Do Not Operate — park it at its return location."
+                : needsReturn
+                  ? "End-of-day is missing — do the return today."
+                  : (m.current_task_location ?? "Checked out")}
+            </p>
+            {(dno || needsReturn) && (
+              <button
+                type="button"
+                onClick={() => goReturn(m.code)}
+                className={`mt-3 min-h-[64px] w-full rounded-2xl text-2xl font-black ${
+                  dno ? "bg-field-stop text-field-ink" : "bg-field-eod text-field-accent-ink"
+                }`}
+              >
+                Return / end-of-day now
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Shell({
   title,
   onBack,
