@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -142,7 +142,16 @@ function FieldPage() {
             <HomeButton label="Return machine / end-of-day" hint="Park it, take a photo" onClick={() => open("return")} />
             <HomeButton label="Report issue" hint="Damage or defect — stops the machine" onClick={() => open("issue")} danger />
           </div>
+          <div className="mt-8 text-center">
+            <Link
+              to="/equipment-admin"
+              className="inline-flex min-h-11 items-center px-3 text-sm font-bold text-field-dim underline underline-offset-4"
+            >
+              Admin
+            </Link>
+          </div>
         </>
+
       )}
 
       {flow === "checkout" && (

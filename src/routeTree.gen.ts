@@ -14,6 +14,7 @@ import { Route as EquipmentRouteImport } from './routes/equipment'
 import { Route as EquipmentAdminRouteImport } from './routes/equipment-admin'
 import { Route as MoneyRouteImport } from './routes/money'
 import { Route as PunchRouteImport } from './routes/punch'
+import { Route as TodayRouteImport } from './routes/today'
 import { Route as CrewsIndexRouteImport } from './routes/crews.index'
 import { Route as CrewsIdRouteImport } from './routes/crews.$id'
 import { Route as HousesIndexRouteImport } from './routes/houses.index'
@@ -44,6 +45,11 @@ const PunchRoute = PunchRouteImport.update({
   path: '/punch',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TodayRoute = TodayRouteImport.update({
+  id: '/today',
+  path: '/today',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrewsIndexRoute = CrewsIndexRouteImport.update({
   id: '/crews/',
   path: '/crews/',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/equipment-admin': typeof EquipmentAdminRoute
   '/money': typeof MoneyRoute
   '/punch': typeof PunchRoute
+  '/today': typeof TodayRoute
   '/crews/$id': typeof CrewsIdRoute
   '/houses/$id': typeof HousesIdRoute
   '/crews/': typeof CrewsIndexRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/equipment-admin': typeof EquipmentAdminRoute
   '/money': typeof MoneyRoute
   '/punch': typeof PunchRoute
+  '/today': typeof TodayRoute
   '/crews/$id': typeof CrewsIdRoute
   '/houses/$id': typeof HousesIdRoute
   '/crews': typeof CrewsIndexRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/equipment-admin': typeof EquipmentAdminRoute
   '/money': typeof MoneyRoute
   '/punch': typeof PunchRoute
+  '/today': typeof TodayRoute
   '/crews/$id': typeof CrewsIdRoute
   '/houses/$id': typeof HousesIdRoute
   '/crews/': typeof CrewsIndexRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/equipment-admin'
     | '/money'
     | '/punch'
+    | '/today'
     | '/crews/$id'
     | '/houses/$id'
     | '/crews/'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/equipment-admin'
     | '/money'
     | '/punch'
+    | '/today'
     | '/crews/$id'
     | '/houses/$id'
     | '/crews'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/equipment-admin'
     | '/money'
     | '/punch'
+    | '/today'
     | '/crews/$id'
     | '/houses/$id'
     | '/crews/'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   EquipmentAdminRoute: typeof EquipmentAdminRoute
   MoneyRoute: typeof MoneyRoute
   PunchRoute: typeof PunchRoute
+  TodayRoute: typeof TodayRoute
   CrewsIdRoute: typeof CrewsIdRoute
   HousesIdRoute: typeof HousesIdRoute
   CrewsIndexRoute: typeof CrewsIndexRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PunchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/today': {
+      id: '/today'
+      path: '/today'
+      fullPath: '/today'
+      preLoaderRoute: typeof TodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crews/': {
       id: '/crews/'
       path: '/crews'
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   EquipmentAdminRoute: EquipmentAdminRoute,
   MoneyRoute: MoneyRoute,
   PunchRoute: PunchRoute,
+  TodayRoute: TodayRoute,
   CrewsIdRoute: CrewsIdRoute,
   HousesIdRoute: HousesIdRoute,
   CrewsIndexRoute: CrewsIndexRoute,
