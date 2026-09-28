@@ -1025,9 +1025,34 @@ function Operators({
         </button>
       </Card>
       <Msg err={err} ok={ok} />
-      {ops.map((o) => (
-        <Card key={o.id} className={o.active ? "" : "opacity-60"}>
-          {editing === o.id ? (
+      <div className="divide-y divide-field-line overflow-hidden rounded-2xl border-2 border-field-line">
+        {ops.map((o) => {
+          const open = expand === o.id || editing === o.id || picking === o.id;
+          return (
+            <div key={o.id} className={`px-3 py-2 ${o.active ? "" : "opacity-60"}`}>
+              <div className="flex min-h-[56px] items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-lg font-black leading-tight">{o.name}</p>
+                  <p className="truncate text-sm text-field-dim">
+                    {o.active ? "Active" : "Inactive"}
+                    {o.custody_count > 0
+                      ? ` · has ${o.custody_count} machine${o.custody_count > 1 ? "s" : ""}`
+                      : ""}
+                    {" · "}
+                    {(access[o.name] ?? []).length
+                      ? (access[o.name] ?? []).join(", ")
+                      : "no machines"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className={ghostBtn}
+                  onClick={() => setExpand(open ? null : o.id)}
+                >
+                  {open ? "Close" : "Manage"}
+                </button>
+              </div>
+              {!open ? null : editing === o.id ? (
             <div className="space-y-2">
               <input
                 className={inputCls}
